@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<meta name="theme-color" content="#faf7f2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Casa Quentinha">
+<meta name="description" content="Divida contas em grupo, veja saldos em tempo real e quite tudo com o menor número de Pix.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Casa Quentinha — contas divididas sem estresse</title>
+<style>
+/* ============================== TOKENS ============================== */
+:root{
+  --bg:#efe7d9; --surface:#faf4e8; --surface2:#e9dfcc; --surface3:#f4ecdd;
+  --surface-dark:#e2d5bd; --cream:#fdf8ee;
+  --ink:#3a332a; --ink-dim:#8a7f6d; --line:#dbcfb6;
+  --primary:#e07b3c; --primary-soft:#f7e3ce;
+  --green:#2c8c62; --green-soft:#dfeee3;
+  --red:#c9524a;  --red-soft:#f4dfd9;
+  --blue:#3f7fb8; --blue-soft:#e0eaf2;
+  --yellow:#d9a233; --purple:#7d6cba; --pink:#c66f96;
+  --radius:14px; --radius-sm:10px;
+  --shadow:0 1px 2px rgba(80,60,35,.07), 0 6px 16px rgba(80,60,35,.07);
+  --font:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--font); font-size:16px; line-height:1.45;
+  padding-bottom:88px; overflow-x:hidden;
+  touch-action:manipulation; -webkit-text-size-adjust:100%;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+h1{font-size:20px} h2{font-size:18px} h3{font-size:15px;margin-bottom:10px}
+.small{font-size:14px;color:var(--ink-dim)}
+.tiny{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+img,canvas{image-rendering:pixelated}
+.tt{font-weight:600}
+
+/* ============================== BLOCOS ============================== */
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px;margin-bottom:14px;position:relative}
+.card.flat{box-shadow:none}
+.row{display:flex;gap:10px;align-items:center}
+.row.wrap2{flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:520px){.g3{grid-template-columns:repeat(3,1fr)}}
+.sep{height:1px;background:var(--line);margin:14px 0}
+.hidden{display:none !important}
+
+/* ============================== BOTÕES ============================== */
+button,.btn{
+  font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;
+  background:var(--surface);color:var(--ink);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:10px 14px;text-align:center;display:inline-block;
+  transition:filter .12s,background .12s;
+}
+button:hover,.btn:hover{filter:brightness(.97)}
+button:active,.btn:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.btn-y{background:var(--primary);color:var(--cream);border-color:var(--primary)}
+.btn-g{background:var(--green);color:var(--cream);border-color:var(--green)}
+.btn-r{background:var(--red);color:var(--cream);border-color:var(--red)}
+.btn-b{background:var(--blue);color:var(--cream);border-color:var(--blue)}
+.btn-p{background:var(--surface2);color:var(--ink)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-dim);padding:6px 8px}
+.btn-sm{font-size:13px;padding:7px 10px}
+.btn-full{display:block;width:100%}
+.btn-xl{font-size:16px;padding:14px}
+
+/* ============================== FORM ============================== */
+label.f{display:block;margin:14px 0 6px;font-size:12px;font-weight:700;color:var(--ink-dim);
+  text-transform:uppercase;letter-spacing:.05em}
+input,select,textarea{
+  font-family:var(--font);font-size:16px;width:100%;background:var(--surface3);color:var(--ink);
+  border:1px solid var(--line);border-radius:var(--radius-sm);padding:11px 12px;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);background:var(--cream);
+  box-shadow:0 0 0 3px var(--primary-soft)}
+input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(--primary)}
+textarea{min-height:72px;resize:vertical}
+input[type=file]{font-size:14px;padding:8px;background:var(--surface3)}
+
+/* ============================== TOPO ============================== */
+header.top{position:sticky;top:0;z-index:60;background:rgba(250,244,232,.94);
+  backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--line)}
+header.top .inner{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.logo{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.logo span{color:var(--primary)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;cursor:pointer}
+.hdr-name{font-size:14px;font-weight:600;color:var(--ink-dim)}
+
+/* ============================== NAV ============================== */
+nav.bottom{position:fixed;bottom:0;left:0;right:0;z-index:70;background:rgba(250,244,232,.97);
+  backdrop-filter:saturate(180%) blur(8px);border-top:1px solid var(--line);display:flex;
+  padding-bottom:env(safe-area-inset-bottom)}
+nav.bottom button{flex:1;background:transparent;border:0;border-radius:0;font-size:11px;font-weight:600;
+  color:var(--ink-dim);padding:9px 2px 11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav.bottom button .ico{font-size:20px;line-height:1.1}
+nav.bottom button.on{color:var(--primary)}
+nav.bottom button:active{transform:none}
+
+/* ============================== AVATAR ============================== */
+.av{display:block}
+.av-frame{background:var(--surface2);border:1px solid var(--line);border-radius:12px;
+  padding:3px;display:inline-flex;overflow:hidden}
+.av-frame.me{border-color:var(--primary);background:var(--primary-soft)}
+.who{display:flex;align-items:center;gap:8px;min-width:0}
+.who b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ============================== LISTAS ============================== */
+.item{display:flex;gap:12px;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.item:last-child{border-bottom:0}
+.item:hover{background:var(--surface3)}
+.item .grow{flex:1;min-width:0}
+.item .ttl{font-size:15px;font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.money{font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pos{color:var(--green)} .neg{color:var(--red)} .zero{color:var(--ink-dim)}
+.pill{font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;background:var(--surface2);
+  color:var(--ink);display:inline-block}
+.pill.y{background:var(--primary-soft);color:#b45c17}
+.pill.g{background:var(--green-soft);color:var(--green)}
+.pill.r{background:var(--red-soft);color:var(--red)}
+.pill.b{background:var(--blue-soft);color:var(--blue)}
+.empty{text-align:center;padding:26px 10px;color:var(--ink-dim);font-size:14px}
+.empty .big{font-size:38px;line-height:1;margin-bottom:8px}
+
+/* ============================== TABS ============================== */
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding:3px;background:var(--surface2);
+  border-radius:999px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{font-size:13px;padding:8px 14px;background:transparent;border:0;border-radius:999px;
+  flex:0 0 auto;color:var(--ink-dim)}
+.tabs button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.modal .tabs{flex-wrap:wrap;overflow:visible}
+.modal .tabs button{flex:1 1 44%}
+
+/* ============================== MODAL ============================== */
+.modal-bg{position:fixed;inset:0;background:rgba(45,35,20,.5);z-index:200;display:flex;
+  align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto}
+.modal{background:var(--surface);border-radius:18px;box-shadow:0 20px 50px rgba(40,32,24,.25);
+  width:100%;max-width:520px;padding:20px;margin:auto 0}
+.modal h2{margin-bottom:4px}
+.modal-actions{display:flex;gap:8px;margin-top:20px}
+.modal-actions button{flex:1;padding:12px}
+.confirm-bg{z-index:400;align-items:center}
+
+/* ============================== TOAST ============================== */
+#toasts{position:fixed;left:0;right:0;top:66px;z-index:500;display:flex;flex-direction:column;
+  align-items:center;gap:8px;pointer-events:none}
+.toast{background:var(--ink);color:var(--cream);border-radius:999px;font-size:14px;font-weight:600;
+  padding:10px 18px;box-shadow:0 8px 20px rgba(40,32,24,.2);animation:pop .2s ease-out, fadeout .4s 2.1s forwards;max-width:90%}
+.toast.warn{background:var(--yellow);color:#4a3208}
+.toast.bad{background:var(--red);color:var(--cream)}
+@keyframes pop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@keyframes fadeout{to{opacity:0;transform:translateY(-10px)}}
+
+/* ============================== MISC ============================== */
+.stat{background:var(--surface3);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:12px 8px;text-align:center}
+.stat .v{font-size:18px;font-weight:700;display:block;margin-bottom:2px}
+.stat .k{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border-radius:999px;
+  padding:6px 12px;font-size:13px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:34px;height:34px;border:2px solid var(--line);border-radius:9px;cursor:pointer}
+.sw.on{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.member-pick{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow-y:auto;
+  border:1px solid var(--line);border-radius:var(--radius-sm);padding:6px;background:var(--surface3)}
+.member-pick .mp{display:flex;align-items:center;gap:10px;padding:7px 6px;cursor:pointer;border-radius:8px}
+.member-pick .mp:hover{background:var(--surface2)}
+.member-pick .mp.off{opacity:.4}
+.member-pick input[type=number]{width:88px;text-align:right;padding:6px 8px;font-size:15px}
+.arrowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pair{display:inline-flex;flex:0 0 auto}
+.pair .av-frame:last-child{margin-left:-10px;box-shadow:-2px 0 0 var(--surface)}
+.av-frame.big{padding:6px;border-radius:16px}
+.arrowline .ar{font-size:15px;color:var(--ink-dim)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-row .lbl{width:36%;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:10px;background:var(--surface2);border-radius:999px;overflow:hidden}
+.bar-track i{display:block;height:100%;border-radius:999px}
+.bar-row .val{font-size:13px;font-weight:600;width:82px;text-align:right;font-variant-numeric:tabular-nums}
+.receipt-thumb{width:54px;height:54px;object-fit:cover;border-radius:8px;cursor:pointer}
+.hero{background:linear-gradient(135deg,#f7e8d5,#f6ece2);border:1px solid var(--line)}
+.hero-dark{background:linear-gradient(135deg,#ded0b2,#e4d6c4);border:1px solid #cdbfa2}
+.hero-dark .av-frame{background:#cdbb99;border-color:#bda986}
+.hero-dark input{background:var(--cream);border-color:#cdbfa2}
+a{color:var(--blue)}
+.warnbar{background:var(--yellow);color:#4a3208;font-size:13px;font-weight:600;padding:9px 14px;text-align:center}
+.balbar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:var(--surface2);margin-top:7px}
+.balbar i{display:block;height:100%;border-radius:999px}
+.note{background:var(--surface3);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="warn" class="warnbar hidden"></div>
+
+<header class="top">
+  <div class="inner">
+    <div class="logo">Casa <span>Quentinha</span></div>
+    <div class="hdr-right" id="hdrProfile">
+      <span class="hdr-name" id="hdrName"></span>
+      <span class="av-frame me" id="hdrAvatar"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<nav class="bottom">
+  <button data-nav="home" class="on"><span class="ico">🏠</span>Início</button>
+  <button data-nav="groups"><span class="ico">👥</span>Grupos</button>
+  <button data-nav="add"><span class="ico">➕</span>Novo gasto</button>
+  <button data-nav="profile"><span class="ico">🙂</span>Perfil</button>
+  <button data-nav="menu"><span class="ico">⚙️</span>Ajustes</button>
+</nav>
+
+<div id="toasts"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* =====================================================================
+   CASA QUENTINHA — app de divisão de contas (arquivo único, offline)
+   ===================================================================== */
+"use strict";
+
+/* ---------------------------------------------------------------- util */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const uid = (p='id')=>p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayISO = ()=> new Date().toISOString().slice(0,10);
+const cents = v => Math.round((Number(v)||0)*100);
+const brl = c => (c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const brlShort = c => (Math.abs(c)>=100000? 'R$'+(c/100000).toFixed(1).replace('.',',')+'k' : brl(c));
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const fmtDate = iso => { const [y,m,d]=iso.split('-'); return `${d}/${m}/${y.slice(2)}`; };
+
+/* ------------------------------------------------------------ storage */
+const KEY='casaquentinha_v1';
+const OLD_KEY='rachaquest_v1';
+let memoryOnly=false, MEM=null;
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){
+    memoryOnly=true;
+    const w=$('#warn'); w.classList.remove('hidden');
+    w.textContent='⚠️ Este navegador não guarda dados automaticamente — exporte seu arquivo em Ajustes.';
+  }
+  return null;
+}
+var appPronto=false;
+function saveDB(interno){
+  if(!interno && appPronto) agendaSync();
+  if(memoryOnly){ MEM=JSON.stringify(db); return; }
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e){
+    memoryOnly=true;
+    const w=$('#warn'); w.classList.remove('hidden');
+    w.textContent='⚠️ Não foi possível salvar (armazenamento cheio). Exporte seus dados em Ajustes.';
+    toast('Falha ao salvar. Exporte os dados!','bad');
+  }
+}
+
+/* --------------------------------------------------------------- SFX */
+let audioCtx=null, sfxOn=true;
+function beep(freq=440,dur=.08,type='square',vol=.05){
+  if(!sfxOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=vol;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime+dur);
+    o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+const sfx={
+  click:()=>beep(880,.03,'sine',.03),
+  ok:()=>{beep(740,.05,'sine',.04);setTimeout(()=>beep(988,.07,'sine',.04),60)},
+  bad:()=>beep(220,.12,'sine',.04)
+};
+
+function toast(msg,kind=''){
+  const t=document.createElement('div');
+  t.className='toast '+kind; t.textContent=msg;
+  $('#toasts').appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+}
+
+/* ================================================================
+   AVATAR 16-BIT — desenhado pixel a pixel em canvas
+   ================================================================ */
+const SKINS   = ['#ffdbac','#f1c27d','#e0ac69','#c68642','#8d5524','#5c3317'];
+const HAIRS   = ['#2b1a12','#6b3f1d','#c9922f','#e6c46a','#a04a32','#3b3b5b','#c96a9e','#4fa89c','#ded3c0'];
+const CLOTHES = ['#d95f57','#4a7fbf','#3f9e72','#e0a93f','#8b6fc4','#cf7ba0','#3aa8a0','#e07b3c','#efe0c4','#4a4335'];
+const HAIRSTYLES = ['curto','longo','moicano','careca','coque','franja'];
+const OUTFITS = ['camiseta','regata','capuz','terno','armadura'];
+
+
+function defaultAvatar(i=0){
+  return { body:i%2?'f':'m', skin:SKINS[i%SKINS.length], hair:HAIRS[(i*3)%HAIRS.length],
+    style:HAIRSTYLES[i%2?1:0], cloth:CLOTHES[(i*4+2)%CLOTHES.length], outfit:'camiseta',
+    acc:'nenhum', eyes:'#3a332a' };
+}
+function randomAvatar(){
+  const r=a=>a[Math.floor(Math.random()*a.length)];
+  return { body:Math.random()<.5?'m':'f', skin:r(SKINS), hair:r(HAIRS), style:r(HAIRSTYLES),
+    cloth:r(CLOTHES), outfit:r(OUTFITS), acc:'nenhum', eyes:'#3a332a' };
+}
+
+/* Grid 16x16. Cada célula: '.'=vazio S=pele H=cabelo C=roupa E=olho O=contorno A=acessório W=branco */
+function avatarGrid(a){
+  const G = Array.from({length:16},()=>Array(16).fill('.'));
+  const set=(x,y,c)=>{ if(x>=0&&x<16&&y>=0&&y<16) G[y][x]=c; };
+  const rect=(x1,y1,x2,y2,c)=>{for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++)set(x,y,c);};
+
+  // cabeça (linhas 2..8)
+  rect(5,2,10,8,'S');
+  rect(4,3,4,7,'S'); rect(11,3,11,7,'S');
+  // orelhas
+  set(3,5,'S'); set(12,5,'S');
+  // olhos
+  set(6,5,'E'); set(9,5,'E');
+  // boca
+  set(7,7,'O'); set(8,7,'O');
+
+  // cabelo
+  const st=a.style;
+  if(st!=='careca'){
+    rect(4,1,11,2,'H'); rect(3,2,3,4,'H'); rect(12,2,12,4,'H');
+    if(st==='curto'){ rect(4,3,11,3,'H'); }
+    if(st==='franja'){ rect(4,3,11,4,'H'); set(6,5,'E'); set(9,5,'E'); }
+    if(st==='longo'){ rect(3,2,3,9,'H'); rect(12,2,12,9,'H'); rect(4,3,11,3,'H'); rect(2,4,2,8,'H'); rect(13,4,13,8,'H'); }
+    if(st==='moicano'){ rect(0,0,15,0,'.'); rect(4,1,11,2,'.'); rect(6,0,9,3,'H'); rect(3,2,3,4,'.'); rect(12,2,12,4,'.'); }
+    if(st==='coque'){ rect(4,3,11,3,'H'); rect(6,0,9,1,'H'); rect(5,1,10,2,'H'); rect(3,2,3,5,'H'); rect(12,2,12,5,'H'); }
+  }
+  // pescoço
+  rect(7,9,8,9,'S');
+
+  // corpo/roupa (10..15)
+  const o=a.outfit;
+  rect(5,10,10,15,'C');
+  rect(4,11,4,14,'C'); rect(11,11,11,14,'C'); // braços
+  set(4,15,'S'); set(11,15,'S');              // mãos
+  if(o==='regata'){ rect(4,11,4,14,'S'); rect(11,11,11,14,'S'); rect(6,10,9,10,'S'); }
+  if(o==='capuz'){ rect(4,9,11,10,'C'); rect(3,10,3,12,'C'); rect(12,10,12,12,'C'); }
+  if(o==='terno'){ rect(7,10,8,13,'W'); set(7,11,'O'); set(8,12,'O'); }
+  if(o==='armadura'){ rect(4,10,11,11,'A'); rect(7,12,8,13,'A'); }
+
+  return G;
+}
+
+function drawAvatar(canvas,a,scale=4){
+  const g=avatarGrid(a), ctx=canvas.getContext('2d');
+  canvas.width=16*scale; canvas.height=16*scale;
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const map={ S:a.skin, H:a.hair, C:a.cloth, E:a.eyes, O:'#4a3f30', A:'#cbbda2', W:'#f2e8d5' };
+  for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+    const c=g[y][x]; if(c==='.') continue;
+    ctx.fillStyle = map[c]||'#f2e8d5';
+    ctx.fillRect(x*scale,y*scale,scale,scale);
+  }
+}
+function avatarHTML(m,scale=3,extraClass=''){
+  return `<span class="av-frame ${extraClass}"><canvas class="av" data-av="${m.id}" data-scale="${scale}"></canvas></span>`;
+}
+function paintAvatars(root=document){
+  $$('canvas[data-av]',root).forEach(c=>{
+    const m=getMember(c.dataset.av); if(!m) return;
+    drawAvatar(c,m.avatar,Number(c.dataset.scale)||3);
+  });
+}
+
+/* ================================================================
+   MODELO DE DADOS
+   ================================================================ */
+const CATS = [
+  {id:'mercado', em:'🛒', nome:'Mercado',   cor:'#2f9e6e'},
+  {id:'comida',  em:'🍕', nome:'Comida',    cor:'#ef8b45'},
+  {id:'bebida',  em:'🍻', nome:'Bebida',    cor:'#d9a520'},
+  {id:'casa',    em:'🏠', nome:'Casa',      cor:'#4b8fd4'},
+  {id:'transp',  em:'🚗', nome:'Transporte',cor:'#8b7ad1'},
+  {id:'hosped',  em:'🏨', nome:'Hospedagem',cor:'#d97ba8'},
+  {id:'lazer',   em:'🎮', nome:'Lazer',     cor:'#dd5b4f'},
+  {id:'contas',  em:'🧾', nome:'Contas',    cor:'#3aa8a0'},
+  {id:'outros',  em:'✨', nome:'Outros',    cor:'#8a827a'}
+];
+const cat = id => CATS.find(c=>c.id===id)||CATS[CATS.length-1];
+const GROUP_ICONS = ['🏖️','🏠','🍽️','🎉','✈️','⛺','🎓','🏔️','🎸','⚽'];
+
+/* Conta direta (1 a 1): por baixo é um grupo de duas pessoas marcado como 'dupla' */
+const ehDupla = g => !!g && g.tipo==='dupla';
+function outroDaDupla(g){
+  const eu=me().id;
+  return getMember((g.membros||[]).find(id=>id!==eu)) || null;
+}
+function nomeDupla(g){
+  const o=outroDaDupla(g);
+  return o? 'Você e '+o.nome : (g.nome||'Conta direta');
+}
+const soGrupos = ()=> db.grupos.filter(g=>!ehDupla(g));
+const soDuplas = ()=> db.grupos.filter(g=>ehDupla(g));
+function achaDupla(idPessoa){
+  const eu=me().id;
+  return soDuplas().find(g=>g.membros.length===2 && g.membros.includes(eu) && g.membros.includes(idPessoa));
+}
+function abrirDupla(idPessoa){
+  let g=achaDupla(idPessoa);
+  if(!g){
+    const p=getMember(idPessoa);
+    g=toca({id:uid('g'),nome:'Você e '+(p?p.nome:'?'),icone:'🤝',tipo:'dupla',
+      membros:[me().id,idPessoa],criadoEm:todayISO(),arquivado:false});
+    db.grupos.push(g); saveDB(); toast('Conta direta criada');
+  }
+  ui.tab='gastos'; go('group',g.id);
+}
+
+let db = loadDB();
+let ui = { screen:'home', groupId:null, tab:'gastos' };
+
+function freshDB(){
+  const me = { id:uid('m'), nome:'Você', contato:'', avatar:defaultAvatar(0), isMe:true };
+  return {
+    version:1, criadoEm:todayISO(),
+    membros:[me], grupos:[], despesas:[], acertos:[], recorrentes:[],
+    config:{ sfx:true }, nuvem:{ url:'', chave:'' }, apagados:{}
+  };
+}
+function seedDemo(){
+  const nomes=['Ana','Bruno','Carla'];
+  nomes.forEach((n,i)=>db.membros.push({id:uid('m'),nome:n,contato:'',avatar:defaultAvatar(i+1)}));
+  const ids=db.membros.map(m=>m.id);
+  const g={id:uid('g'),nome:'Viagem de Férias',icone:'🏖️',membros:ids.slice(),criadoEm:todayISO(),arquivado:false};
+  db.grupos.push(g);
+  addExpense({grupoId:g.id,desc:'Airbnb 3 noites',valor:cents(1200),categoria:'hosped',pagoPor:ids[0],
+    tipo:'igual',partes:{},participantes:ids,data:todayISO(),nota:'',recibo:null},true);
+  addExpense({grupoId:g.id,desc:'Mercado da chegada',valor:cents(348.9),categoria:'mercado',pagoPor:ids[1],
+    tipo:'igual',partes:{},participantes:ids,data:todayISO(),nota:'',recibo:null},true);
+  addExpense({grupoId:g.id,desc:'Jantar (Carla não foi)',valor:cents(260),categoria:'comida',pagoPor:ids[2],
+    tipo:'igual',partes:{},participantes:[ids[0],ids[1],ids[2]],data:todayISO(),nota:'',recibo:null},true);
+}
+if(!db){ db=freshDB(); if(!location.hash.startsWith('#convite=')) seedDemo(); saveDB(); }
+if(!db.recorrentes) db.recorrentes=[];
+if(!db.config) db.config={sfx:true};
+if(!db.nuvem) db.nuvem={url:'',chave:''};
+if(!db.apagados) db.apagados={};
+sfxOn = db.config.sfx!==false;
+
+const getMember = id => db.membros.find(m=>m.id===id);
+const getGroup  = id => db.grupos.find(g=>g.id===id);
+const me = () => db.membros.find(m=>m.isMe) || db.membros[0];
+const nameOf = id => (getMember(id)||{nome:'?'}).nome;
+const groupExpenses = gid => db.despesas.filter(e=>e.grupoId===gid).sort((a,b)=> b.data.localeCompare(a.data) || b.criadoEm-a.criadoEm);
+const groupSettles  = gid => db.acertos.filter(s=>s.grupoId===gid).sort((a,b)=> b.data.localeCompare(a.data));
+
+/* ================================================================
+   DIVISÃO — igual / partes / porcentagem / exato
+   ================================================================ */
+function computeShares(valor, tipo, partes, participantes){
+  const out={}; const n=participantes.length;
+  if(!n) return out;
+  if(tipo==='igual'){
+    const base=Math.floor(valor/n); let resto=valor-base*n;
+    participantes.forEach((id,i)=>{ out[id]=base+(i<resto?1:0); });
+    return out;
+  }
+  if(tipo==='exato'){
+    participantes.forEach(id=> out[id]=Math.round(Number(partes[id])||0));
+    return out;
+  }
+  // porcentagem ou partes (pesos) → proporcional com correção de arredondamento
+  const pesos = participantes.map(id=> Math.max(0, Number(partes[id])||0));
+  const total = pesos.reduce((a,b)=>a+b,0);
+  if(total<=0) return computeShares(valor,'igual',{},participantes);
+  let acc=0;
+  participantes.forEach((id,i)=>{
+    if(i===n-1){ out[id]=valor-acc; }
+    else { const v=Math.round(valor*pesos[i]/total); out[id]=v; acc+=v; }
+  });
+  return out;
+}
+function shareSum(sh){ return Object.values(sh).reduce((a,b)=>a+b,0); }
+
+/* ================================================================
+   SALDOS
+   ================================================================ */
+function groupBalances(gid){
+  const g=getGroup(gid); if(!g) return {};
+  const bal={}; g.membros.forEach(id=>bal[id]=0);
+  groupExpenses(gid).forEach(e=>{
+    if(bal[e.pagoPor]===undefined) bal[e.pagoPor]=0;
+    bal[e.pagoPor]+=e.valor;
+    Object.entries(e.cotas).forEach(([id,v])=>{ bal[id]=(bal[id]||0)-v; });
+  });
+  groupSettles(gid).forEach(s=>{
+    bal[s.de]=(bal[s.de]||0)+s.valor;
+    bal[s.para]=(bal[s.para]||0)-s.valor;
+  });
+  return bal; // >0 tem a receber, <0 deve
+}
+function globalBalances(){
+  const tot={};
+  db.grupos.filter(g=>!g.arquivado).forEach(g=>{
+    const b=groupBalances(g.id);
+    Object.entries(b).forEach(([id,v])=> tot[id]=(tot[id]||0)+v);
+  });
+  return tot;
+}
+/* Simplificação: quita todos os saldos com o menor nº de transferências (guloso) */
+function simplify(bal){
+  const dev=[], cre=[];
+  Object.entries(bal).forEach(([id,v])=>{
+    if(v<-0)  dev.push({id,v:-v});
+    else if(v>0) cre.push({id,v});
+  });
+  dev.sort((a,b)=>b.v-a.v); cre.sort((a,b)=>b.v-a.v);
+  const res=[]; let i=0,j=0, guard=0;
+  while(i<dev.length && j<cre.length && guard++<9999){
+    const v=Math.min(dev[i].v, cre[j].v);
+    if(v>0) res.push({de:dev[i].id, para:cre[j].id, valor:v});
+    dev[i].v-=v; cre[j].v-=v;
+    if(dev[i].v<=0) i++;
+    if(cre[j].v<=0) j++;
+  }
+  return res;
+}
+/* Dívidas "diretas" (sem simplificar): quem deve a quem pelas despesas */
+function directDebts(gid){
+  const m={};
+  groupExpenses(gid).forEach(e=>{
+    Object.entries(e.cotas).forEach(([id,v])=>{
+      if(id===e.pagoPor||!v) return;
+      const k=id+'>'+e.pagoPor, k2=e.pagoPor+'>'+id;
+      if(m[k2]!==undefined){ m[k2]-=v; if(m[k2]<0){ m[k]= -m[k2]; delete m[k2]; } }
+      else m[k]=(m[k]||0)+v;
+    });
+  });
+  groupSettles(gid).forEach(s=>{
+    const k=s.de+'>'+s.para, k2=s.para+'>'+s.de;
+    if(m[k]!==undefined){ m[k]-=s.valor; if(m[k]<0){ m[k2]=(m[k2]||0)-m[k]; delete m[k]; } }
+    else m[k2]=(m[k2]||0)+s.valor;
+  });
+  return Object.entries(m).filter(([,v])=>v>0).map(([k,v])=>{
+    const [de,para]=k.split('>'); return {de,para,valor:v};
+  }).sort((a,b)=>b.valor-a.valor);
+}
+
+/* ================================================================
+   AÇÕES (despesas, acertos, recorrentes)
+   ================================================================ */
+function toca(o){ if(o) o.v=Date.now(); return o; }
+function apagado(tipo,id,grupoId){
+  db.apagados=db.apagados||{};
+  db.apagados[id]={tipo,grupoId,v:Date.now()};
+}
+
+function addExpense(d,silent){
+  const cotas=computeShares(d.valor,d.tipo,d.partes,d.participantes);
+  const e=toca({ id:uid('e'), ...d, cotas, criadoEm:Date.now() });
+  db.despesas.push(e);
+  if(!silent) saveDB();
+  return e;
+}
+function updateExpense(id,d){
+  const i=db.despesas.findIndex(e=>e.id===id); if(i<0) return;
+  const cotas=computeShares(d.valor,d.tipo,d.partes,d.participantes);
+  db.despesas[i]=toca({...db.despesas[i],...d,cotas}); saveDB();
+}
+function delExpense(id){
+  const e=db.despesas.find(x=>x.id===id);
+  if(e) apagado('despesa',id,e.grupoId);
+  db.despesas=db.despesas.filter(x=>x.id!==id); saveDB();
+}
+function addSettle(s){
+  db.acertos.push(toca({id:uid('s'),...s,criadoEm:Date.now()}));
+  saveDB();
+}
+/* Materializa despesas recorrentes vencidas */
+function runRecurring(){
+  const hoje=todayISO(); let criadas=0;
+  db.recorrentes.forEach(r=>{
+    if(!r.ativo) return; let guard=0;
+    while(r.proxima<=hoje && guard++<60){
+      addExpense({grupoId:r.grupoId,desc:r.desc,valor:r.valor,categoria:r.categoria,pagoPor:r.pagoPor,
+        tipo:r.tipo,partes:r.partes,participantes:r.participantes,data:r.proxima,
+        nota:'(recorrente) '+(r.nota||''),recibo:null,recorrenteId:r.id},true);
+      criadas++;
+      r.proxima = nextDate(r.proxima, r.freq);
+    }
+  });
+  if(criadas){ saveDB(); toast(criadas+' despesa(s) recorrente(s) lançada(s)','warn'); }
+}
+function nextDate(iso,freq){
+  const d=new Date(iso+'T12:00:00');
+  if(freq==='semanal') d.setDate(d.getDate()+7);
+  else if(freq==='quinzenal') d.setDate(d.getDate()+14);
+  else d.setMonth(d.getMonth()+1);
+  return d.toISOString().slice(0,10);
+}
+
+/* ================================================================
+   RENDER — cabeçalho e roteador
+   ================================================================ */
+function renderHeader(){
+  const c=document.createElement('canvas');
+  drawAvatar(c,me().avatar,2);
+  $('#hdrAvatar').innerHTML=''; $('#hdrAvatar').appendChild(c);
+  $('#hdrName').textContent=me().nome;
+  $('#hdrProfile').onclick=()=>go('profile');
+}
+function go(screen,gid){
+  ui.screen=screen; if(gid!==undefined) ui.groupId=gid;
+  if(screen==='add'){ openExpenseModal(); return; }
+  $$('nav.bottom button').forEach(b=>b.classList.toggle('on', b.dataset.nav===screen));
+  window.scrollTo(0,0); render();
+}
+function render(){
+  const app=$('#app');
+  const s=ui.screen;
+  if(s==='home') app.innerHTML=viewHome();
+  else if(s==='groups') app.innerHTML=viewGroups();
+  else if(s==='group') app.innerHTML=viewGroup();
+  else if(s==='profile') app.innerHTML=viewProfile();
+  else if(s==='menu') app.innerHTML=viewMenu();
+  else app.innerHTML=viewHome();
+  paintAvatars(app); bindScreen(); renderHeader();
+}
+
+/* ---------------------------------------------------------- helpers UI */
+function balClass(v){ return Math.abs(v)<1?'zero':(v>0?'pos':'neg'); }
+function balText(v){
+  if(Math.abs(v)<1) return 'quites';
+  return (v>0?'recebe ':'deve ')+brl(Math.abs(v));
+}
+function membersStrip(ids,scale=2){
+  return ids.slice(0,8).map(id=>{const m=getMember(id); return m?avatarHTML(m,scale,m.isMe?'me':''):''}).join('')
+    + (ids.length>8?`<span class="tiny">+${ids.length-8}</span>`:'');
+}
+function catBadge(id){ const c=cat(id); return `<span class="pill" style="background:${c.cor}22;color:${c.cor}">${c.em} ${c.nome}</span>`; }
+
+/* ================================================================
+   TELA: INÍCIO
+   ================================================================ */
+function viewHome(){
+  const g=globalBalances(); const meId=me().id;
+  const myNet=g[meId]||0;
+  const gruposAtivos=soGrupos().filter(x=>!x.arquivado);
+  const duplasAtivas=soDuplas().filter(x=>!x.arquivado);
+  const pend=[];
+  [...gruposAtivos,...duplasAtivas].forEach(gr=>{
+    simplify(groupBalances(gr.id)).forEach(t=>{ if(t.de===meId||t.para===meId) pend.push({...t,grupo:gr}); });
+  });
+  const aPagar=pend.filter(p=>p.de===meId).reduce((a,p)=>a+p.valor,0);
+  const aReceber=pend.filter(p=>p.para===meId).reduce((a,p)=>a+p.valor,0);
+  return `
+  <div class="card hero" style="margin-top:16px">
+    <div class="row">
+      ${avatarHTML(me(),5,'me')}
+      <div class="grow" style="flex:1;min-width:0">
+        <div class="tiny">Seu saldo geral</div>
+        <div class="money ${balClass(myNet)}" style="font-size:28px;margin:2px 0 2px">
+          ${Math.abs(myNet)<1?'Tudo certo':(myNet>0?'+':'\u2212')+' '+brl(Math.abs(myNet))}
+        </div>
+        <div class="small">${Math.abs(myNet)<1?'Você está quite com todo mundo.':(myNet>0?'No total, tem esse valor a receber.':'No total, deve esse valor.')}</div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="stat"><span class="v neg">${brlShort(aPagar)}</span><span class="k">A pagar</span></div>
+      <div class="stat"><span class="v pos">${brlShort(aReceber)}</span><span class="k">A receber</span></div>
+    </div>
+    <button class="btn-y btn-full btn-xl" data-act="new-exp" style="margin-top:12px">+ Novo gasto</button>
+  </div>
+
+  <div class="card">
+    <div class="spread" style="margin-bottom:6px"><h3 style="margin:0">Pendências</h3>
+      <span class="pill ${pend.length?'y':'g'}">${pend.length}</span></div>
+    ${pend.length? pend.map(p=>`
+      <div class="item" data-open-group="${p.grupo.id}">
+        <div style="font-size:24px">${ehDupla(p.grupo)?'🤝':p.grupo.icone}</div>
+        <div class="grow">
+          <span class="ttl">${p.de===meId?'Pagar para '+esc(nameOf(p.para)):'Receber de '+esc(nameOf(p.de))}</span>
+          <span class="small">${ehDupla(p.grupo)?'conta direta':esc(p.grupo.nome)}</span>
+        </div>
+        <span class="money ${p.de===meId?'neg':'pos'}">${brl(p.valor)}</span>
+      </div>`).join('')
+    : `<div class="empty"><div class="big">☕</div>Nenhuma conta em aberto.</div>`}
+  </div>
+
+  ${duplasAtivas.length?`<div class="card">
+    <div class="spread" style="margin-bottom:6px"><h3 style="margin:0">Contas diretas</h3>
+      <button class="btn-sm" data-act="nova-dupla">+ Nova</button></div>
+    ${duplasAtivas.map(g=>{const o=outroDaDupla(g), b=groupBalances(g.id)[meId]||0;
+      return `<div class="item" data-open-group="${g.id}">
+        ${o?avatarHTML(o,3):'<span style="font-size:22px">🤝</span>'}
+        <div class="grow"><span class="ttl">${esc(o?o.nome:g.nome)}</span>
+        <span class="small">${Math.abs(b)<1?'sem contas pendentes':(b>0?'te deve':'você deve')}</span></div>
+        <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span></div>`}).join('')}
+  </div>`:''}
+
+  <div class="card">
+    <div class="spread" style="margin-bottom:6px"><h3 style="margin:0">Seus grupos</h3>
+      <button class="btn-sm" data-act="new-group">+ Novo</button></div>
+    ${gruposAtivos.length? gruposAtivos.map(gr=>{
+      const b=groupBalances(gr.id)[meId]||0;
+      return `<div class="item" data-open-group="${gr.id}">
+        <div style="font-size:24px">${gr.icone}</div>
+        <div class="grow"><span class="ttl">${esc(gr.nome)}</span>
+        <span class="small">${gr.membros.length} pessoas · ${groupExpenses(gr.id).length} gastos</span></div>
+        <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span>
+      </div>`}).join('')
+    : `<div class="empty"><div class="big">🏠</div>Crie seu primeiro grupo para começar.</div>`}
+  </div>`;
+}
+
+/* ================================================================
+   TELA: GRUPOS
+   ================================================================ */
+function viewGroups(){
+  const meId=me().id;
+  const ativos=soGrupos().filter(g=>!g.arquivado), arq=db.grupos.filter(g=>g.arquivado);
+  const duplas=soDuplas().filter(g=>!g.arquivado);
+  const linhaDupla = g=>{
+    const o=outroDaDupla(g), b=groupBalances(g.id)[meId]||0;
+    return `<div class="item" data-open-group="${g.id}">
+      ${o?avatarHTML(o,3):'<span style="font-size:22px">🤝</span>'}
+      <div class="grow"><span class="ttl">${esc(o?o.nome:g.nome)}</span>
+      <span class="small">${Math.abs(b)<1?'sem contas pendentes':(b>0?'te deve':'você deve')} · ${groupExpenses(g.id).length} gastos</span></div>
+      <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span>
+    </div>`;
+  };
+  const cardG = gr=>{
+    const bal=groupBalances(gr.id), b=bal[meId]||0, tot=groupExpenses(gr.id).reduce((a,e)=>a+e.valor,0);
+    return `<div class="card" data-open-group="${gr.id}" style="cursor:pointer">
+      <div class="row" style="margin-bottom:10px">
+        <div style="font-size:30px">${gr.icone}</div>
+        <div class="grow" style="flex:1;min-width:0">
+          <h3 style="margin:0 0 2px">${esc(gr.nome)}</h3>
+          <span class="small">${brl(tot)} em gastos</span>
+        </div>
+        <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span>
+      </div>
+      <div class="row wrap2" style="gap:6px">${membersStrip(gr.membros)}</div>
+    </div>`;
+  };
+  return `
+  <div class="spread" style="margin:18px 0 14px">
+    <h1 style="margin:0">Grupos</h1>
+    <button class="btn-y" data-act="new-group">+ Criar grupo</button>
+  </div>
+  ${ativos.length?ativos.map(cardG).join(''):`<div class="card"><div class="empty"><div class="big">🏠</div>
+    Nenhum grupo ainda.<br><span class="small">Crie um para a viagem, a república ou o jantar de sábado.</span></div></div>`}
+
+  <div class="card">
+    <div class="spread" style="margin-bottom:6px">
+      <div><h3 style="margin:0">Contas diretas</h3>
+        <div class="small">Rachos com uma pessoa só, sem criar grupo.</div></div>
+      <button class="btn-sm" data-act="nova-dupla">+ Nova</button>
+    </div>
+    ${duplas.length? duplas.map(linhaDupla).join('')
+      : `<div class="empty">Nenhuma conta direta.<br><span class="small">Ex.: as contas da casa com uma pessoa, ou o almoço que você pagou pro Bruno.</span></div>`}
+  </div>
+  ${arq.length?`<h3 style="margin:22px 0 10px">Arquivados</h3>${arq.map(cardG).join('')}`:''}`;
+}
+
+/* ================================================================
+   TELA: GRUPO
+   ================================================================ */
+function viewGroup(){
+  const g=getGroup(ui.groupId);
+  if(!g){ ui.screen='groups'; return viewGroups(); }
+  const tabs = ehDupla(g)
+    ? [['gastos','Gastos'],['acertar','Acertar'],['relatorio','Relatório'],['config','Ajustes']]
+    : [['gastos','Gastos'],['saldos','Saldos'],['acertar','Acertar'],['relatorio','Relatório'],['config','Ajustes']];
+  const body = ui.tab==='saldos'?tabSaldos(g): ui.tab==='acertar'?tabAcertar(g):
+               ui.tab==='relatorio'?tabRelatorio(g): ui.tab==='config'?tabConfig(g): tabGastos(g);
+  const tot=groupExpenses(g.id).reduce((a,e)=>a+e.valor,0);
+  const b=groupBalances(g.id)[me().id]||0;
+  const dupla=ehDupla(g), outro=dupla?outroDaDupla(g):null;
+  return `
+  <div class="card hero" style="margin-top:16px">
+    <div class="row">
+      <button class="btn-ghost" data-act="back" style="font-size:18px">←</button>
+      ${dupla&&outro?avatarHTML(outro,4):`<div style="font-size:30px">${g.icone}</div>`}
+      <div class="grow" style="flex:1;min-width:0">
+        <h2 style="margin:0 0 2px">${esc(dupla&&outro?outro.nome:g.nome)}</h2>
+        <span class="small">${dupla?'Conta direta · ':''}${brl(tot)} em ${groupExpenses(g.id).length} gastos</span>
+      </div>
+    </div>
+    <div class="sep"></div>
+    ${dupla? `<div class="spread">
+        <div class="money ${balClass(b)}" style="font-size:20px">
+          ${Math.abs(b)<1?'Vocês estão quites' : (b>0? esc(outro?outro.nome:'Ela')+' te deve '+brl(b) : 'Você deve '+brl(-b))}
+        </div>
+        ${Math.abs(b)>=1?`<button class="btn-sm btn-g" data-settle="${b>0?(outro?outro.id:'')+'|'+me().id:me().id+'|'+(outro?outro.id:'')}|${Math.round(Math.abs(b))}">Acertar</button>`:''}
+      </div>`
+    : `<div class="spread">
+      <div class="row wrap2" style="flex:1;gap:6px">${membersStrip(g.membros)}</div>
+      <div style="text-align:right;flex:0 0 auto">
+        <div class="tiny">Você</div>
+        <div class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+' '+brl(Math.abs(b))}</div>
+      </div>
+    </div>`}
+  </div>
+  <div class="tabs">${tabs.map(([k,l])=>`<button data-tab="${k}" class="${ui.tab===k?'on':''}">${l}</button>`).join('')}</div>
+  ${body}
+  <button class="btn-y btn-full btn-xl" data-act="new-exp" style="margin-bottom:24px">+ Lançar gasto</button>`;
+}
+
+function tabGastos(g){
+  const list=groupExpenses(g.id); const meId=me().id;
+  if(!list.length) return `<div class="card"><div class="empty"><div class="big">🧾</div>
+    Nenhum gasto lançado ainda.<br><span class="small">Toque em "Lançar gasto" para começar.</span></div></div>`;
+  return `<div class="card">${list.map(e=>{
+    const c=cat(e.categoria), minha=e.cotas[meId]||0;
+    const euPaguei=e.pagoPor===meId;
+    return `<div class="item" data-exp="${e.id}">
+      <div style="font-size:22px;width:38px;height:38px;border-radius:10px;background:${c.cor}22;display:flex;align-items:center;justify-content:center">${c.em}</div>
+      <div class="grow">
+        <span class="ttl">${esc(e.desc)}</span>
+        <span class="small">${fmtDate(e.data)} · ${euPaguei?'você pagou':esc(nameOf(e.pagoPor))+' pagou'}${e.recibo?' · 📎':''}</span>
+      </div>
+      <div style="text-align:right">
+        <div class="money">${brl(e.valor)}</div>
+        <div class="small" style="font-size:12px">${minha?'sua parte '+brl(minha):'você ficou fora'}</div>
+      </div>
+    </div>`}).join('')}</div>`;
+}
+
+function tabSaldos(g){
+  const bal=groupBalances(g.id);
+  const max=Math.max(1,...Object.values(bal).map(v=>Math.abs(v)));
+  const diretas=directDebts(g.id);
+  return `
+  <div class="card">
+    <h3>Saldo de cada pessoa</h3>
+    ${g.membros.map(id=>{
+      const m=getMember(id); if(!m) return '';
+      const v=bal[id]||0, w=Math.abs(v)/max*100;
+      return `<div class="row" style="margin-bottom:14px">
+        ${avatarHTML(m,3,m.isMe?'me':'')}
+        <div class="grow" style="flex:1;min-width:0">
+          <div class="spread"><b style="font-size:15px">${esc(m.nome)}${m.isMe&&m.nome!=='Você'?' (você)':''}</b>
+          <span class="money ${balClass(v)}">${Math.abs(v)<1?'quite':(v>0?'+':'\u2212')+' '+brl(Math.abs(v))}</span></div>
+          <div class="balbar">
+            <div style="width:50%;display:flex;justify-content:flex-end">
+              ${v<0?`<i style="width:${w}%;background:var(--red)"></i>`:''}</div>
+            <div style="width:50%;display:flex">
+              ${v>0?`<i style="width:${w}%;background:var(--green)"></i>`:''}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="small" style="text-align:center;margin-top:2px">à esquerda quem deve · à direita quem tem a receber</div>
+  </div>
+  <div class="card">
+    <h3>Quem deve a quem</h3>
+    <div class="small" style="margin:-6px 0 10px">Dívidas como aconteceram, sem simplificação.</div>
+    ${diretas.length? diretas.map(d=>`
+      <div class="item" style="cursor:default">
+        <span class="pair">${avatarHTML(getMember(d.de)||{id:d.de},2)}${avatarHTML(getMember(d.para)||{id:d.para},2)}</span>
+        <div class="grow"><span class="ttl">${esc(nameOf(d.de))} → ${esc(nameOf(d.para))}</span>
+        <span class="small">precisa pagar</span></div>
+        <span class="money neg">${brl(d.valor)}</span>
+      </div>`).join('')
+    : `<div class="empty">Está tudo zerado por aqui.</div>`}
+    ${diretas.length>1?`<button class="btn-g btn-full" data-tab="acertar" style="margin-top:14px">Simplificar dívidas</button>`:''}
+  </div>`;
+}
+
+function tabAcertar(g){
+  const bal=groupBalances(g.id);
+  const simples=simplify(bal), diretas=directDebts(g.id);
+  const economia=diretas.length-simples.length;
+  const hist=groupSettles(g.id);
+  return `
+  <div class="card">
+    <h3>Simplificação</h3>
+    <div class="row" style="justify-content:space-around;text-align:center;margin:4px 0">
+      <div><div class="money" style="font-size:24px;color:var(--ink-dim)">${diretas.length}</div>
+        <div class="small">pagamentos<br>originais</div></div>
+      <div class="ar" style="font-size:22px">→</div>
+      <div><div class="money" style="font-size:24px;color:var(--green)">${simples.length}</div>
+        <div class="small">depois de<br>simplificar</div></div>
+    </div>
+    ${economia>0?`<div class="note" style="margin-top:10px">São <b>${economia} transferência(s) a menos</b> para o grupo resolver. Quem devia em cadeia paga direto a quem tem a receber.</div>`:''}
+  </div>
+  <div class="card">
+    <h3>Pagamentos sugeridos</h3>
+    ${simples.length? simples.map(t=>`
+      <div class="item" style="cursor:default">
+        <span class="pair">${avatarHTML(getMember(t.de)||{id:t.de},2)}${avatarHTML(getMember(t.para)||{id:t.para},2)}</span>
+        <div class="grow"><span class="ttl">${esc(nameOf(t.de))} → ${esc(nameOf(t.para))}</span>
+        <span class="money">${brl(t.valor)}</span></div>
+        <button class="btn-sm btn-g" data-settle="${t.de}|${t.para}|${t.valor}">Já paguei</button>
+      </div>`).join('')
+    : `<div class="empty"><div class="big">✅</div>Ninguém deve nada a ninguém.</div>`}
+    <button class="btn-full" data-act="manual-settle" style="margin-top:14px">+ Registrar acerto manual</button>
+  </div>
+  <div class="card">
+    <h3>Histórico de acertos</h3>
+    ${hist.length? hist.map(s=>`
+      <div class="item" style="cursor:default">
+        <div style="font-size:20px">💸</div>
+        <div class="grow"><span class="ttl">${esc(nameOf(s.de))} → ${esc(nameOf(s.para))}</span>
+        <span class="small">${fmtDate(s.data)}${s.nota?' · '+esc(s.nota):''}</span></div>
+        <span class="money">${brl(s.valor)}</span>
+        <button class="btn-sm btn-ghost" data-del-settle="${s.id}" style="color:var(--red)">remover</button>
+      </div>`).join('')
+    : `<div class="empty">Nenhum acerto registrado ainda.</div>`}
+  </div>`;
+}
+
+function tabRelatorio(g){
+  const list=groupExpenses(g.id);
+  if(!list.length) return `<div class="card"><div class="empty"><div class="big">📊</div>Sem dados ainda.</div></div>`;
+  const tot=list.reduce((a,e)=>a+e.valor,0);
+  const porCat={}, porPagador={}, porConsumo={}, porMes={};
+  list.forEach(e=>{
+    porCat[e.categoria]=(porCat[e.categoria]||0)+e.valor;
+    porPagador[e.pagoPor]=(porPagador[e.pagoPor]||0)+e.valor;
+    Object.entries(e.cotas).forEach(([id,v])=> porConsumo[id]=(porConsumo[id]||0)+v);
+    const mes=e.data.slice(0,7); porMes[mes]=(porMes[mes]||0)+e.valor;
+  });
+  const bars=(obj,labelFn,colorFn)=>{
+    const ent=Object.entries(obj).sort((a,b)=>b[1]-a[1]); const mx=Math.max(...ent.map(e=>e[1]),1);
+    return ent.map(([k,v])=>`<div class="bar-row">
+      <span class="lbl">${labelFn(k)}</span>
+      <span class="bar-track"><i style="width:${v/mx*100}%;background:${colorFn(k)}"></i></span>
+      <span class="val">${brlShort(v)}</span></div>`).join('');
+  };
+  const meses=Object.keys(porMes).sort();
+  const mxMes=Math.max(...Object.values(porMes),1);
+  const cores=['#ef8b45','#4b8fd4','#2f9e6e','#8b7ad1','#d97ba8','#e9b949'];
+  return `
+  <div class="grid g2" style="margin-bottom:14px">
+    <div class="stat"><span class="v">${brlShort(tot)}</span><span class="k">Total do grupo</span></div>
+    <div class="stat"><span class="v">${brlShort(Math.round(tot/g.membros.length))}</span><span class="k">Média por pessoa</span></div>
+  </div>
+  <div class="card"><h3>Por categoria</h3>
+    ${bars(porCat, k=>cat(k).em+' '+cat(k).nome, k=>cat(k).cor)}</div>
+  <div class="card"><h3>Quem mais pagou</h3>
+    ${bars(porPagador, k=>esc(nameOf(k)), ()=>'var(--green)')}</div>
+  <div class="card"><h3>Quem mais consumiu</h3>
+    ${bars(porConsumo, k=>esc(nameOf(k)), ()=>'var(--blue)')}</div>
+  <div class="card"><h3>Por mês</h3>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:130px;padding:8px 4px 0">
+      ${meses.map((m,i)=>`<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%">
+        <span class="small" style="font-size:11px">${brlShort(porMes[m])}</span>
+        <div style="width:100%;max-width:46px;height:${porMes[m]/mxMes*76}%;background:${cores[i%cores.length]};border-radius:8px 8px 0 0"></div>
+        <span class="small" style="font-size:11px">${m.slice(5)}/${m.slice(2,4)}</span>
+      </div>`).join('')}
+    </div></div>`;
+}
+
+function tabConfig(g){
+  const fora=db.membros.filter(m=>!g.membros.includes(m.id));
+  const recs=db.recorrentes.filter(r=>r.grupoId===g.id);
+  return `
+  <div class="card">
+    <h3>Dados do grupo</h3>
+    <label class="f">Nome</label>
+    <input id="gName" value="${esc(g.nome)}">
+    <label class="f">Ícone</label>
+    <div class="swatches">${GROUP_ICONS.map(i=>`<span class="sw ${g.icone===i?'on':''}" data-gicon="${i}"
+      style="display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--surface3)">${i}</span>`).join('')}</div>
+    <button class="btn-g btn-full" data-act="save-group" style="margin-top:16px">Salvar</button>
+  </div>
+  ${ehDupla(g)?'':`<div class="card">
+    <h3>Participantes (${g.membros.length})</h3>
+    ${g.membros.map(id=>{const m=getMember(id); if(!m)return'';
+      const b=groupBalances(g.id)[id]||0;
+      return `<div class="item" style="cursor:default">
+        ${avatarHTML(m,3,m.isMe?'me':'')}
+        <div class="grow"><span class="ttl">${esc(m.nome)}${m.isMe&&m.nome!=='Você'?' (você)':''}</span>
+        <span class="small">${esc(m.contato||'sem contato')}</span></div>
+        <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span>
+        ${m.isMe?'':`<button class="btn-sm btn-ghost" data-rm-member="${m.id}" style="color:var(--red)">tirar</button>`}
+      </div>`}).join('')}
+    <div class="row wrap2" style="margin-top:14px">
+      <button class="btn-sm" data-act="new-member">+ Nova pessoa</button>
+      ${fora.length?`<button class="btn-sm" data-act="add-existing">+ Da minha lista</button>`:''}
+      <button class="btn-sm" data-act="invite">🔗 Link de convite</button>
+    </div>
+  </div>`}
+  ${ehDupla(g)?`<div class="card">
+    <h3>Conta direta com ${esc((outroDaDupla(g)||{nome:'?'}).nome)}</h3>
+    <div class="small" style="margin-bottom:12px">Para incluir mais gente, crie um grupo em <b>Grupos → Criar grupo</b>.</div>
+    <button class="btn-sm" data-act="invite">🔗 Link de convite</button>
+  </div>`:''}
+  <div class="card">
+    <h3>Despesas recorrentes</h3>
+    <div class="small" style="margin:-6px 0 10px">Aluguel, internet, faxina — lançadas automaticamente.</div>
+    ${recs.length? recs.map(r=>`<div class="item" style="cursor:default">
+      <div style="font-size:20px">${cat(r.categoria).em}</div>
+      <div class="grow"><span class="ttl">${esc(r.desc)}</span>
+      <span class="small">${r.freq} · próxima em ${fmtDate(r.proxima)} · ${esc(nameOf(r.pagoPor))} paga</span></div>
+      <span class="money">${brl(r.valor)}</span>
+      <button class="btn-sm btn-ghost" data-del-rec="${r.id}" style="color:var(--red)">remover</button></div>`).join('')
+    : ''}
+    <button class="btn-full" data-act="new-rec" style="margin-top:12px">+ Nova recorrente</button>
+  </div>
+  <div class="card">
+    <h3>Sincronização</h3>
+    ${g.nuvem&&g.nuvem.segredo
+      ? `<div class="small" style="margin-bottom:12px">Este grupo está na nuvem: quem tem o link de convite vê os gastos aparecerem sozinhos.</div>
+         <div class="small" data-sync-status style="margin-bottom:12px">${textoSync()}</div>
+         <div class="grid g2">
+           <button data-act="sync-now">Sincronizar agora</button>
+           <button class="btn-ghost" data-act="nuvem-off" style="color:var(--red);border:1px solid var(--line)">Desligar</button>
+         </div>`
+      : `<div class="small" style="margin-bottom:12px">${nuvemPronta()
+          ? 'Ligue para que todos os participantes vejam os gastos deste grupo ao vivo.'
+          : 'Configure a conexão em <b>Ajustes → Sincronizar entre celulares</b> para liberar esta opção.'}</div>
+         <button class="btn-g btn-full" data-act="nuvem-on" ${nuvemPronta()?'':'disabled'}>Ligar sincronização deste grupo</button>`}
+  </div>
+  <div class="card">
+    <h3>Outras opções</h3>
+    <div class="row wrap2">
+      <button class="btn-sm" data-act="archive">${g.arquivado?'Desarquivar':'Arquivar grupo'}</button>
+      <button class="btn-sm btn-ghost" data-act="del-group" style="color:var(--red)">Apagar grupo</button>
+    </div>
+  </div>`;
+}
+
+/* ================================================================
+   TELA: PERFIL
+   ================================================================ */
+let editingMemberId=null, profileDraft=null;
+function viewProfile(){
+  let m = editingMemberId? getMember(editingMemberId) : me();
+  if(!m) m=me();
+  editingMemberId = m.id;
+  if(!profileDraft || profileDraft.id!==m.id) profileDraft={id:m.id, avatar:{...m.avatar}};
+  const av = profileDraft.avatar;
+  const cap = t => t.charAt(0).toUpperCase()+t.slice(1);
+  const gb=globalBalances(); const net=gb[m.id]||0;
+  const meusGrupos=db.grupos.filter(g=>g.membros.includes(m.id));
+  return `
+  <div class="card hero-dark" style="text-align:center;margin-top:16px">
+    <div class="row" style="justify-content:center;margin-bottom:14px">
+      <span class="av-frame big"><canvas id="bigAv" class="av"></canvas></span>
+    </div>
+    <input id="pName" value="${esc(m.nome)}" style="text-align:center;font-size:18px;font-weight:700">
+    <input id="pContato" value="${esc(m.contato||'')}" placeholder="e-mail, telefone ou @usuário" style="text-align:center;margin-top:8px">
+    <div style="margin-top:14px">
+      <div class="tiny">${m.isMe?'Seu saldo geral':'Saldo geral'}</div>
+      <div class="money ${balClass(net)}" style="font-size:22px">${Math.abs(net)<1?'Tudo certo':(net>0?'+':'\u2212')+' '+brl(Math.abs(net))}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="spread" style="margin-bottom:4px">
+      <h3 style="margin:0">Avatar</h3>
+      <button class="btn-sm" data-act="rand-av">🎲 Sortear</button>
+    </div>
+    <label class="f">Corpo</label>
+    <div class="row wrap2">
+      <button class="btn-sm ${av.body==='m'?'btn-y':''}" data-av-set="body:m">Homem</button>
+      <button class="btn-sm ${av.body==='f'?'btn-y':''}" data-av-set="body:f">Mulher</button>
+    </div>
+    <label class="f">Tom de pele</label>
+    <div class="swatches">${SKINS.map(c=>`<span class="sw ${av.skin===c?'on':''}" style="background:${c}" data-av-set="skin:${c}"></span>`).join('')}</div>
+    <label class="f">Cabelo</label>
+    <div class="row wrap2">${HAIRSTYLES.map(x=>`<button class="btn-sm ${av.style===x?'btn-y':''}" data-av-set="style:${x}">${cap(x)}</button>`).join('')}</div>
+    <div class="swatches" style="margin-top:8px">${HAIRS.map(c=>`<span class="sw ${av.hair===c?'on':''}" style="background:${c}" data-av-set="hair:${c}"></span>`).join('')}</div>
+    <label class="f">Roupa</label>
+    <div class="row wrap2">${OUTFITS.map(x=>`<button class="btn-sm ${av.outfit===x?'btn-y':''}" data-av-set="outfit:${x}">${cap(x)}</button>`).join('')}</div>
+    <div class="swatches" style="margin-top:8px">${CLOTHES.map(c=>`<span class="sw ${av.cloth===c?'on':''}" style="background:${c}" data-av-set="cloth:${c}"></span>`).join('')}</div>
+    <button class="btn-g btn-full btn-xl" data-act="save-profile" style="margin-top:18px">Salvar perfil</button>
+  </div>
+
+  <div class="card">
+    <h3>${m.isMe?'Seus grupos':'Grupos de '+esc(m.nome)}</h3>
+    ${meusGrupos.length? meusGrupos.map(g=>{const b=groupBalances(g.id)[m.id]||0;
+      return `<div class="item" data-open-group="${g.id}"><div style="font-size:22px">${ehDupla(g)?'🤝':g.icone}</div>
+      <div class="grow"><span class="ttl">${ehDupla(g)?esc(nomeDupla(g)):esc(g.nome)}</span><span class="small">${balText(b)}</span></div>
+      <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span></div>`}).join('')
+    : `<div class="empty">Ainda não participa de nenhum grupo.</div>`}
+  </div>
+
+  <div class="card">
+    <h3>Editar outra pessoa</h3>
+    <div class="row wrap2" style="gap:12px;margin-top:4px">
+      ${db.membros.map(x=>`<span data-edit-member="${x.id}" style="cursor:pointer;text-align:center;width:64px">
+        ${avatarHTML(x,3,x.id===m.id?'me':'')}<div class="small" style="font-size:12px;overflow:hidden;text-overflow:ellipsis">${esc(x.nome)}</div></span>`).join('')}
+    </div>
+    <button class="btn-full" data-act="new-member" style="margin-top:14px">+ Nova pessoa</button>
+  </div>`;
+}
+
+/* ================================================================
+   TELA: MAIS
+   ================================================================ */
+/* ---- instalação na tela de início (PWA) ---- */
+let promptInstalar=null;
+const jaInstalado = ()=> (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone===true;
+const ehIOS = ()=> /iphone|ipad|ipod/i.test(navigator.userAgent);
+function cardInstalar(){
+  if(location.protocol==='file:') return `<div class="card">
+    <h3>Instalar no celular</h3>
+    <div class="small">Você está abrindo o app como arquivo local. Publique-o em um endereço na web (instruções no LEIA-ME) para instalar na tela de início e para os links de convite funcionarem.</div>
+  </div>`;
+  if(jaInstalado()) return `<div class="card">
+    <h3>Instalar no celular</h3>
+    <div class="small">O Casa Quentinha já está instalado neste aparelho. Ele abre offline, sem precisar de internet.</div>
+  </div>`;
+  if(promptInstalar) return `<div class="card">
+    <h3>Instalar no celular</h3>
+    <div class="small" style="margin-bottom:12px">Adicione à tela de início para abrir como um aplicativo, em tela cheia e offline.</div>
+    <button class="btn-y btn-full" data-act="install">Instalar na tela de início</button>
+  </div>`;
+  return `<div class="card">
+    <h3>Instalar no celular</h3>
+    <div class="small">${ehIOS()
+      ? 'No iPhone: toque no botão <b>Compartilhar</b> do Safari e escolha <b>Adicionar à Tela de Início</b>.'
+      : 'No navegador do celular: abra o menu (⋮) e escolha <b>Instalar aplicativo</b> ou <b>Adicionar à tela de início</b>.'}</div>
+  </div>`;
+}
+
+function viewMenu(){
+  const size=(JSON.stringify(db).length/1024).toFixed(0);
+  return `
+  <h1 style="margin:18px 0 14px">Ajustes</h1>
+  <div class="card">
+    <h3>Seus dados</h3>
+    <div class="small" style="margin-bottom:12px">
+      ${memoryOnly?'Este navegador não salva automaticamente — exporte o arquivo para não perder nada.':'Tudo é salvo neste navegador, só no seu aparelho.'}
+      Tamanho atual: ${size} KB.</div>
+    <div class="grid g2">
+      <button data-act="export">⬇ Exportar arquivo</button>
+      <button data-act="import">⬆ Importar arquivo</button>
+    </div>
+    <input type="file" id="fileImport" accept="application/json,.json" class="hidden">
+  </div>
+  <div class="card">
+    <h3>Sincronizar entre celulares</h3>
+    <div class="small" style="margin-bottom:10px">Guarda os grupos numa conta sua no Supabase, para todo mundo ver os mesmos gastos. Sem isso, cada aparelho fica com a própria cópia. Veja o passo a passo no arquivo <b>SINCRONIZACAO.md</b>.</div>
+    <div class="small" data-sync-status style="margin-bottom:12px">${textoSync()}</div>
+    <label class="f">Endereço do projeto (Project URL)</label>
+    <input id="cfgUrl" value="${esc(db.nuvem.url||'')}" placeholder="https://xxxxxxxx.supabase.co">
+    <label class="f">Chave pública (publishable key ou anon)</label>
+    <input id="cfgChave" value="${esc(db.nuvem.chave||'')}" placeholder="sb_publishable_... ou eyJhbGciOi...">
+    <div class="small" style="margin-top:6px">No Supabase: <b>Settings → API Keys</b>. Serve a <b>Publishable key</b> (começa com <code>sb_publishable_</code>) ou, na aba <i>Legacy API keys</i>, a antiga <b>anon public</b>. Nunca use a <b>secret</b>/<b>service_role</b>.</div>
+    <div class="grid g2" style="margin-top:14px">
+      <button class="btn-g" data-act="save-nuvem">Salvar conexão</button>
+      <button data-act="sync-now">Sincronizar agora</button>
+    </div>
+    ${nuvemPronta()?`<div class="small" style="margin-top:12px">Grupos sincronizando: ${gruposNaNuvem().length} de ${db.grupos.length}. Ligue grupo a grupo em <b>Grupo → Ajustes</b>.</div>`:''}
+  </div>
+  ${cardInstalar()}
+  <div class="card">
+    <h3>Som</h3>
+    <button class="btn-full" data-act="toggle-sfx">${sfxOn?'Sons ligados':'Sons desligados'}</button>
+  </div>
+  <div class="card">
+    <h3>Pessoas (${db.membros.length})</h3>
+    ${db.membros.map(m=>{const b=globalBalances()[m.id]||0; return `<div class="item" data-edit-member="${m.id}">
+      ${avatarHTML(m,3,m.isMe?'me':'')}
+      <div class="grow"><span class="ttl">${esc(m.nome)}${m.isMe&&m.nome!=='Você'?' (você)':''}</span>
+      <span class="small">${esc(m.contato||'sem contato')}</span></div>
+      <span class="money ${balClass(b)}">${Math.abs(b)<1?'quite':(b>0?'+':'\u2212')+brlShort(Math.abs(b))}</span>
+      ${m.isMe?'':`<button class="btn-sm" data-dupla-abrir="${m.id}">conta direta</button>`}</div>`}).join('')}
+    <button class="btn-full" data-act="new-member" style="margin-top:14px">+ Nova pessoa</button>
+  </div>
+  <div class="card">
+    <h3>Como funciona</h3>
+    <div class="small">
+      <b>1.</b> Crie um grupo (viagem, casa, jantar) ou uma <b>conta direta</b>, para rachos com uma pessoa só.<br>
+      <b>2.</b> Lance cada gasto: valor, quem pagou e quem participou.<br>
+      <b>3.</b> Escolha a divisão: igual, por partes, porcentagem ou valor exato.<br>
+      <b>4.</b> Veja os saldos e abra <b>Acertar</b> — o app reduz o número de transferências.<br>
+      <b>5.</b> Pagou por fora? Toque em <b>Já paguei</b> para baixar a dívida.
+    </div>
+  </div>
+  <div class="card">
+    <h3>Recomeçar</h3>
+    <div class="small" style="margin-bottom:12px">Apaga grupos, gastos e pessoas deste aparelho.</div>
+    <button class="btn-full btn-ghost" data-act="reset" style="color:var(--red);border:1px solid var(--line)">Apagar tudo</button>
+  </div>
+  <div class="small" style="text-align:center;margin:22px 0 30px">Casa Quentinha · versão 1.0</div>`;
+}
+
+/* ================================================================
+   MODAIS
+   ================================================================ */
+function openModal(html,onMount){
+  const root=$('#modalRoot');
+  root.innerHTML=`<div class="modal-bg"><div class="modal">${html}</div></div>`;
+  const bg=$('.modal-bg',root);
+  bg.addEventListener('click',e=>{ if(e.target===bg) closeModal(); });
+  paintAvatars(root);
+  if(onMount) onMount(root);
+  sfx.click();
+}
+function closeModal(){ $('#modalRoot').innerHTML=''; }
+
+/* Confirmação interna — não depende do confirm() do navegador,
+   que é bloqueado em alguns visualizadores/iframes. */
+function askConfirm(opts,onYes){
+  const {titulo='Tem certeza?',texto='',ok='Apagar',perigo=true}=opts||{};
+  const root=document.createElement('div');
+  root.className='modal-bg confirm-bg';
+  root.innerHTML=`<div class="modal" style="max-width:400px">
+    <h2>${esc(titulo)}</h2>
+    ${texto?`<div class="small" style="margin-top:8px">${esc(texto)}</div>`:''}
+    <div class="modal-actions">
+      <button data-no>Cancelar</button>
+      <button class="${perigo?'btn-r':'btn-g'}" data-yes>${esc(ok)}</button>
+    </div></div>`;
+  document.body.appendChild(root);
+  const fecha=()=>{ root.remove(); document.removeEventListener('keydown',esckey); };
+  const esckey=e=>{ if(e.key==='Escape') fecha(); };
+  document.addEventListener('keydown',esckey);
+  root.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(e.target===root || e.target.closest('[data-no]')) return fecha();
+    if(e.target.closest('[data-yes]')){ fecha(); sfx.ok(); onYes(); }
+  });
+  sfx.click();
+}
+
+/* ---------------------------------------------------- GRUPO (criar) */
+function openGroupModal(){
+  if(db.membros.length<2){
+    openMemberModal(()=>openGroupModal());
+    toast('Adicione pelo menos uma pessoa antes','warn'); return;
+  }
+  openModal(`
+    <h2>Novo grupo</h2>
+    <label class="f">Nome do grupo</label>
+    <input id="ngName" placeholder="Viagem de Férias, República…">
+    <label class="f">Ícone</label>
+    <div class="swatches" id="ngIcons">${GROUP_ICONS.map((i,k)=>`<span class="sw ${k===0?'on':''}" data-i="${i}"
+      style="display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg2)">${i}</span>`).join('')}</div>
+    <label class="f">Quem participa</label>
+    <div class="member-pick" id="ngMembers">
+      ${db.membros.map(m=>`<label class="mp"><input type="checkbox" value="${m.id}" checked>
+        ${avatarHTML(m,3)}<span>${esc(m.nome)}</span></label>`).join('')}
+    </div>
+    <button class="btn-sm btn-b" id="ngNew" style="margin-top:8px">+ Nova pessoa</button>
+    <div class="modal-actions"><button data-close>Cancelar</button><button class="btn-g" id="ngSave">Criar grupo</button></div>`,
+  root=>{
+    let icone=GROUP_ICONS[0];
+    $$('#ngIcons .sw',root).forEach(s=>s.onclick=()=>{
+      $$('#ngIcons .sw',root).forEach(x=>x.classList.remove('on')); s.classList.add('on'); icone=s.dataset.i; sfx.click();
+    });
+    $('#ngNew',root).onclick=()=>openMemberModal(()=>openGroupModal());
+    $('#ngSave',root).onclick=()=>{
+      const nome=$('#ngName',root).value.trim()||'Novo Grupo';
+      const membros=$$('#ngMembers input:checked',root).map(i=>i.value);
+      if(membros.length<2){ toast('Escolha pelo menos 2 participantes','bad'); sfx.bad(); return; }
+      const g=toca({id:uid('g'),nome,icone,membros,criadoEm:todayISO(),arquivado:false});
+      db.grupos.push(g); saveDB(); closeModal();
+      ui.tab='gastos'; go('group',g.id);
+    };
+  });
+}
+
+/* --------------------------- PEDIR O NOME ANTES DE COMPARTILHAR ------- */
+function precisaNome(){ const m=me(); return !m.nome || m.nome.trim()==='Você'; }
+function pedirNome(depois){
+  openModal(`
+    <h2>Como você aparece para os outros?</h2>
+    <div class="small" style="margin-top:6px;margin-bottom:12px">
+      Seu perfil ainda está como "Você". Coloque seu nome para a turma saber quem lançou cada gasto.</div>
+    <label class="f">Seu nome</label>
+    <input id="pnNome" placeholder="Ex: André" value="">
+    <label class="f">Contato (opcional)</label>
+    <input id="pnContato" placeholder="e-mail, telefone ou @usuário" value="${esc(me().contato||'')}">
+    <div class="modal-actions"><button data-close>Agora não</button>
+      <button class="btn-g" id="pnOk">Salvar e continuar</button></div>`,
+  root=>{
+    const salvar=()=>{
+      const n=$('#pnNome',root).value.trim();
+      if(!n){ toast('Digite seu nome','bad'); sfx.bad(); return; }
+      const m=me(); m.nome=n; m.contato=$('#pnContato',root).value.trim(); toca(m);
+      saveDB(); closeModal(); render(); if(depois) depois();
+    };
+    $('#pnOk',root).onclick=salvar;
+    $('#pnNome',root).addEventListener('keydown',e=>{ if(e.key==='Enter') salvar(); });
+    setTimeout(()=>$('#pnNome',root).focus(),80);
+  });
+}
+
+/* ---------------------------------- QUEM É VOCÊ (ao entrar por convite) */
+function perguntarIdentidade(g){
+  const candidatos=g.membros.map(getMember).filter(m=>m && !m.isMe);
+  if(!candidatos.length) return;
+  openModal(`
+    <h2>Quem é você?</h2>
+    <div class="small" style="margin-top:6px;margin-bottom:12px">
+      Escolha o seu nome na lista para o app saber quanto <b>você</b> deve ou tem a receber
+      em "${esc(ehDupla(g)?nomeDupla(g):g.nome)}".</div>
+    <div class="member-pick">${candidatos.map(m=>`
+      <div class="mp" data-eusou="${m.id}" style="justify-content:flex-start">
+        ${avatarHTML(m,3)}<span style="flex:1">${esc(m.nome)}</span>
+        ${m.contato?`<span class="small">${esc(m.contato)}</span>`:''}
+      </div>`).join('')}</div>
+    <button class="btn-full" id="souOutro" style="margin-top:12px">Não sou nenhum deles</button>`,
+  root=>{
+    $('#souOutro',root).onclick=()=>{ closeModal(); toast('Você entrou como mais uma pessoa','warn'); render(); };
+    $$('[data-eusou]',root).forEach(el=>el.onclick=()=>{
+      const novo=getMember(el.dataset.eusou), antigo=me();
+      if(!novo||!antigo) return closeModal();
+      const antigoEmUso = db.despesas.some(e=>e.pagoPor===antigo.id || (e.cotas||{})[antigo.id]) ||
+                          db.acertos.some(a=>a.de===antigo.id||a.para===antigo.id) ||
+                          db.grupos.some(x=>x.id!==g.id && x.membros.includes(antigo.id));
+      antigo.isMe=false; novo.isMe=true; toca(novo);
+      if(!antigoEmUso){
+        db.grupos.forEach(x=>{ x.membros=x.membros.filter(id=>id!==antigo.id); });
+        db.membros=db.membros.filter(x=>x.id!==antigo.id);
+      }
+      editingMemberId=null; profileDraft=null;
+      saveDB(); closeModal(); render(); sfx.ok();
+      toast('Bem-vindo, '+novo.nome);
+    });
+  });
+}
+
+/* -------------------------------------------- CONTA DIRETA (1 a 1) */
+function openDuplaModal(){
+  const eu=me().id;
+  const gente=db.membros.filter(m=>m.id!==eu);
+  openModal(`
+    <h2>Nova conta direta</h2>
+    <div class="small" style="margin-top:6px;margin-bottom:12px">Para dividir contas com uma pessoa só — sem precisar criar um grupo.</div>
+    ${gente.length?`<label class="f">Com quem?</label>
+    <div class="member-pick">${gente.map(m=>{
+      const j=achaDupla(m.id);
+      return `<div class="mp" data-dupla="${m.id}" style="justify-content:flex-start">
+        ${avatarHTML(m,3)}<span style="flex:1">${esc(m.nome)}</span>
+        ${j?'<span class="pill">já existe</span>':''}</div>`}).join('')}</div>`
+    :`<div class="empty">Você ainda não cadastrou ninguém.</div>`}
+    <button class="btn-full" id="dupNova" style="margin-top:12px">+ Cadastrar outra pessoa</button>
+    <div class="modal-actions"><button data-close>Fechar</button></div>`,
+  root=>{
+    $('#dupNova',root).onclick=()=>openMemberModal(m=>{ closeModal(); abrirDupla(m.id); });
+    $$('[data-dupla]',root).forEach(el=>el.onclick=()=>{ closeModal(); abrirDupla(el.dataset.dupla); });
+  });
+}
+
+/* -------------------------------------------------- MEMBRO (criar) */
+function openMemberModal(after){
+  const av=randomAvatar();
+  openModal(`
+    <h2>Nova pessoa</h2>
+    <div style="text-align:center;margin:10px 0">
+      <span class="av-frame"><canvas id="nmAv" class="av"></canvas></span>
+      <div><button class="btn-sm btn-p" id="nmRand" style="margin-top:8px">🎲 Outro visual</button></div>
+    </div>
+    <label class="f">Nome</label>
+    <input id="nmName" placeholder="Ex: Bruno">
+    <label class="f">Contato (opcional)</label>
+    <input id="nmContato" placeholder="bruno@email.com">
+    <div class="modal-actions"><button data-close>Cancelar</button><button class="btn-g" id="nmSave">Adicionar</button></div>`,
+  root=>{
+    let cur={...av};
+    const paint=()=>drawAvatar($('#nmAv',root),cur,6);
+    paint();
+    $('#nmRand',root).onclick=()=>{ cur=randomAvatar(); paint(); sfx.click(); };
+    $('#nmSave',root).onclick=()=>{
+      const nome=$('#nmName',root).value.trim(); if(!nome){ toast('Digite um nome','bad'); sfx.bad(); return; }
+      const m=toca({id:uid('m'),nome,contato:$('#nmContato',root).value.trim(),avatar:cur});
+      db.membros.push(m);
+      if(ui.screen==='group'&&ui.groupId){ const g=getGroup(ui.groupId); if(g&&!g.membros.includes(m.id)){ g.membros.push(m.id); toca(g); } }
+      saveDB(); closeModal(); sfx.ok();
+      if(after) after(m); else render();
+    };
+  });
+}
+
+/* --------------------------------------------------- DESPESA */
+function openExpenseModal(expId){
+  if(!db.grupos.filter(g=>!g.arquivado).length){ openGroupModal(); toast('Crie um grupo primeiro','warn'); return; }
+  const exp = expId? db.despesas.find(e=>e.id===expId):null;
+  const gAtivos=db.grupos.filter(g=>!g.arquivado);
+  const gid = exp? exp.grupoId : (ui.groupId && getGroup(ui.groupId) && !getGroup(ui.groupId).arquivado ? ui.groupId : gAtivos[0].id);
+  const st = exp? {
+      grupoId:exp.grupoId, valor:exp.valor, tipo:exp.tipo, partes:{...exp.partes},
+      participantes:[...exp.participantes], pagoPor:exp.pagoPor, categoria:exp.categoria, recibo:exp.recibo
+    } : {
+      grupoId:gid, valor:0, tipo:'igual', partes:{}, participantes:[...getGroup(gid).membros],
+      pagoPor:me().id, categoria:'comida', recibo:null
+    };
+  if(!getGroup(st.grupoId).membros.includes(st.pagoPor)) st.pagoPor=getGroup(st.grupoId).membros[0];
+
+  openModal(`
+    <h2>${exp?'Editar gasto':'Novo gasto'}</h2>
+    <label class="f">Grupo</label>
+    <select id="exGroup">${gAtivos.map(g=>`<option value="${g.id}" ${g.id===st.grupoId?'selected':''}>${ehDupla(g)?'🤝 '+esc(nomeDupla(g)):g.icone+' '+esc(g.nome)}</option>`).join('')}</select>
+    <label class="f">Descrição</label>
+    <input id="exDesc" value="${exp?esc(exp.desc):''}" placeholder="Ex: Jantar no bar">
+    <div class="row" style="gap:8px">
+      <div style="flex:1"><label class="f">Valor (R$)</label>
+        <input id="exVal" type="number" inputmode="decimal" step="0.01" min="0" value="${exp?(exp.valor/100).toFixed(2):''}" placeholder="0,00"></div>
+      <div style="flex:1"><label class="f">Data</label>
+        <input id="exDate" type="date" value="${exp?exp.data:todayISO()}"></div>
+    </div>
+    <label class="f">Categoria</label>
+    <div class="row wrap2" id="exCats">${CATS.map(c=>`<button class="btn-sm ${c.id===st.categoria?'btn-y':''}" data-c="${c.id}">${c.em} ${c.nome}</button>`).join('')}</div>
+    <label class="f">Quem pagou</label>
+    <select id="exPayer"></select>
+    <label class="f">Como dividir</label>
+    <div class="tabs" id="exTipo">
+      <button data-t="igual">Igual</button><button data-t="partes">Partes</button>
+      <button data-t="porcento">Porcentagem</button><button data-t="exato">Valor exato</button>
+    </div>
+    <div id="exSplit"></div>
+    <div id="exStatus" class="small" style="text-align:center;margin-top:10px;font-weight:600"></div>
+    <label class="f">Anotação</label>
+    <textarea id="exNota" placeholder="Detalhes, quem comeu o quê...">${exp?esc(exp.nota||''):''}</textarea>
+    <label class="f">Recibo ou nota fiscal (foto/PDF)</label>
+    <input type="file" id="exFile" accept="image/*,application/pdf">
+    <div id="exReceipt" style="margin-top:8px"></div>
+    <div class="modal-actions">
+      <button data-close>Cancelar</button>
+      ${exp?`<button class="btn-r" id="exDel">Apagar</button>`:''}
+      <button class="btn-g" id="exSave">${exp?'Salvar':'Lançar gasto'}</button>
+    </div>`,
+  root=>{
+    const grp=()=>getGroup(st.grupoId);
+    const renderPayer=()=>{
+      $('#exPayer',root).innerHTML=grp().membros.map(id=>{const m=getMember(id);
+        const marca = m&&m.isMe&&m.nome!=='Você' ? ' (você)' : '';
+        return `<option value="${id}" ${id===st.pagoPor?'selected':''}>${esc(m?m.nome:'?')}${marca}</option>`}).join('');
+    };
+    const renderSplit=()=>{
+      $$('#exTipo button',root).forEach(b=>b.classList.toggle('on',b.dataset.t===st.tipo));
+      const hint={igual:'Todo mundo marcado divide em partes iguais.',partes:'Use pesos: 2 partes para quem consumiu o dobro.',
+        porcento:'A soma precisa dar 100%.',exato:'Informe quanto cada um deve; a soma tem que bater com o total.'}[st.tipo];
+      $('#exSplit',root).innerHTML=`<div class="small" style="margin-bottom:8px">${hint}</div>
+      <div class="member-pick">${grp().membros.map(id=>{const m=getMember(id); if(!m) return '';
+        const on=st.participantes.includes(id);
+        const val = st.tipo==='exato'? ((st.partes[id]||0)/100).toFixed(2) : (st.partes[id]??(st.tipo==='porcento'?'':'1'));
+        return `<div class="mp ${on?'':'off'}" data-mp="${id}">
+          <input type="checkbox" data-chk="${id}" ${on?'checked':''}>
+          ${avatarHTML(m,3)}<span style="flex:1">${esc(m.nome)}</span>
+          ${st.tipo==='igual'?'':`<input type="number" step="${st.tipo==='exato'?'0.01':'1'}" min="0" data-part="${id}" value="${val}" ${on?'':'disabled'}>`}
+          <span class="small" data-prev="${id}" style="min-width:74px;text-align:right"></span>
+        </div>`}).join('')}</div>`;
+      $$('[data-chk]',root).forEach(c=>c.onchange=()=>{
+        const id=c.dataset.chk;
+        st.participantes = c.checked ? [...new Set([...st.participantes,id])] : st.participantes.filter(x=>x!==id);
+        renderSplit(); sfx.click();
+      });
+      $$('[data-part]',root).forEach(inp=>inp.oninput=()=>{
+        const id=inp.dataset.part;
+        st.partes[id]= st.tipo==='exato'? cents(inp.value) : Number(inp.value)||0;
+        updatePreview();
+      });
+      paintAvatars(root); updatePreview();
+    };
+    const updatePreview=()=>{
+      st.valor=cents($('#exVal',root).value);
+      const ordered=grp().membros.filter(id=>st.participantes.includes(id));
+      const sh=computeShares(st.valor,st.tipo,st.partes,ordered);
+      $$('[data-prev]',root).forEach(s=>{
+        const v=sh[s.dataset.prev];
+        s.textContent = v===undefined?'':brl(v);
+      });
+      const soma=shareSum(sh), diff=st.valor-soma;
+      const el=$('#exStatus',root);
+      if(!ordered.length){ el.innerHTML='<span style="color:var(--red)">Selecione quem participou</span>'; return; }
+      if(st.tipo==='exato'&&Math.abs(diff)>0){
+        el.innerHTML=`<span style="color:var(--red)">Falta ${brl(diff)} para fechar ${brl(st.valor)}</span>`;
+      } else if(st.tipo==='porcento'){
+        const p=ordered.reduce((a,id)=>a+(Number(st.partes[id])||0),0);
+        el.innerHTML= Math.abs(p-100)<0.001? `<span style="color:var(--green)">100% distribuído</span>`
+          : `<span style="color:var(--red)">Soma atual: ${p}% (precisa dar 100%)</span>`;
+      } else {
+        el.innerHTML=`<span style="color:var(--green)">${brl(soma)} divididos entre ${ordered.length} pessoa(s)</span>`;
+      }
+    };
+    const renderReceipt=()=>{
+      $('#exReceipt',root).innerHTML = st.recibo?
+        `<div class="row"><span class="chip">${st.recibo.tipo==='pdf'?'📄':'🖼️'} ${esc(st.recibo.nome).slice(0,22)}</span>
+         <button class="btn-sm btn-r" id="exRmFile">Remover</button></div>`:'';
+      const rm=$('#exRmFile',root); if(rm) rm.onclick=()=>{ st.recibo=null; renderReceipt(); };
+    };
+    renderPayer(); renderSplit(); renderReceipt();
+    $('#exGroup',root).onchange=e=>{
+      st.grupoId=e.target.value; st.participantes=[...grp().membros];
+      if(!grp().membros.includes(st.pagoPor)) st.pagoPor=grp().membros[0];
+      st.partes={}; renderPayer(); renderSplit();
+    };
+    $('#exPayer',root).onchange=e=>st.pagoPor=e.target.value;
+    $('#exVal',root).oninput=updatePreview;
+    $$('#exCats button',root).forEach(b=>b.onclick=()=>{
+      st.categoria=b.dataset.c;
+      $$('#exCats button',root).forEach(x=>x.classList.remove('btn-y')); b.classList.add('btn-y'); sfx.click();
+    });
+    $$('#exTipo button',root).forEach(b=>b.onclick=()=>{
+      st.tipo=b.dataset.t;
+      const ordered=grp().membros.filter(id=>st.participantes.includes(id));
+      if(st.tipo==='partes') ordered.forEach(id=>st.partes[id]=st.partes[id]||1);
+      if(st.tipo==='porcento'){ const p=+(100/ordered.length).toFixed(2); ordered.forEach(id=>st.partes[id]=p); }
+      if(st.tipo==='exato'){ const eq=computeShares(st.valor,'igual',{},ordered); ordered.forEach(id=>st.partes[id]=eq[id]||0); }
+      renderSplit(); sfx.click();
+    });
+    $('#exFile',root).onchange=async e=>{
+      const f=e.target.files[0]; if(!f) return;
+      try{ st.recibo=await fileToReceipt(f); renderReceipt(); toast('Recibo anexado'); }
+      catch(err){ toast('Arquivo muito grande','bad'); sfx.bad(); }
+    };
+    const delBtn=$('#exDel',root);
+    if(delBtn) delBtn.onclick=()=>askConfirm({titulo:'Apagar este gasto?',texto:esc(exp.desc)+' — '+brl(exp.valor)+'. Os saldos do grupo serão recalculados.'},
+      ()=>{ delExpense(exp.id); closeModal(); render(); toast('Gasto apagado','warn'); });
+    $('#exSave',root).onclick=()=>{
+      const desc=$('#exDesc',root).value.trim()||'Gasto';
+      st.valor=cents($('#exVal',root).value);
+      if(st.valor<=0){ toast('Informe um valor','bad'); sfx.bad(); return; }
+      const ordered=grp().membros.filter(id=>st.participantes.includes(id));
+      if(!ordered.length){ toast('Escolha quem participou','bad'); sfx.bad(); return; }
+      const sh=computeShares(st.valor,st.tipo,st.partes,ordered);
+      if(st.tipo==='exato'&&Math.abs(shareSum(sh)-st.valor)>0){ toast('A soma não bate com o total','bad'); sfx.bad(); return; }
+      const payload={ grupoId:st.grupoId, desc, valor:st.valor, categoria:st.categoria, pagoPor:st.pagoPor,
+        tipo:st.tipo, partes:{...st.partes}, participantes:ordered, data:$('#exDate',root).value||todayISO(),
+        nota:$('#exNota',root).value.trim(), recibo:st.recibo };
+      if(exp){ updateExpense(exp.id,payload); toast('Gasto atualizado'); }
+      else { addExpense(payload); }
+      saveDB(); closeModal(); sfx.ok();
+      ui.groupId=st.grupoId; if(ui.screen!=='group'){ ui.tab='gastos'; go('group',st.grupoId); } else render();
+    };
+  });
+}
+
+/* ------------------------------------------- DETALHE DA DESPESA */
+function openExpenseDetail(id){
+  const e=db.despesas.find(x=>x.id===id); if(!e) return;
+  const c=cat(e.categoria);
+  openModal(`
+    <h2>${c.em} ${esc(e.desc)}</h2>
+    <div class="spread"><span class="small">${fmtDate(e.data)}</span><span class="money" style="color:var(--yellow)">${brl(e.valor)}</span></div>
+    <div class="sep"></div>
+    <div class="row" style="margin-bottom:10px">${avatarHTML(getMember(e.pagoPor)||{id:e.pagoPor},4)}
+      <div><div class="tiny">Pago por</div><b style="font-family:var(--title);font-size:10px">${esc(nameOf(e.pagoPor))}</b></div>
+      <div style="margin-left:auto">${catBadge(e.categoria)}</div></div>
+    <h3>Divisão (${e.tipo})</h3>
+    ${Object.entries(e.cotas).map(([id,v])=>`<div class="item" style="cursor:default;padding:6px">
+      ${avatarHTML(getMember(id)||{id},3)}<span class="grow small">${esc(nameOf(id))}</span>
+      <span class="money">${brl(v)}</span></div>`).join('')}
+    ${e.nota?`<div class="sep"></div><div class="tiny">Anotação</div><div class="small">${esc(e.nota)}</div>`:''}
+    ${e.recibo?`<div class="sep"></div><div class="tiny">Recibo</div>
+      ${e.recibo.tipo==='img'?`<img src="${e.recibo.data}" style="max-width:100%;border:var(--px) solid var(--line);margin-top:6px">`
+      :`<a href="${e.recibo.data}" download="${esc(e.recibo.nome)}" class="btn btn-sm btn-b" style="margin-top:6px">📄 Baixar ${esc(e.recibo.nome).slice(0,18)}</a>`}`:''}
+    <div class="modal-actions"><button data-close>Fechar</button>
+      <button id="edDel" style="color:var(--red)">Apagar</button>
+      <button class="btn-y" id="edEdit">Editar</button></div>`,
+  root=>{
+    $('#edEdit',root).onclick=()=>{ closeModal(); openExpenseModal(id); };
+    $('#edDel',root).onclick=()=>askConfirm({titulo:'Apagar este gasto?',texto:e.desc+' — '+brl(e.valor)+'. Os saldos do grupo serão recalculados.'},
+      ()=>{ delExpense(id); closeModal(); render(); toast('Gasto apagado','warn'); });
+  });
+}
+
+/* --------------------------------------------------- ACERTO */
+function openSettleModal(de,para,valor){
+  const g=getGroup(ui.groupId); if(!g) return;
+  openModal(`
+    <h2>Registrar acerto</h2>
+    <div class="tiny" style="margin-bottom:10px">Use quando o pagamento já foi feito por fora (Pix, dinheiro…)</div>
+    <label class="f">Quem pagou</label>
+    <select id="stFrom">${g.membros.map(id=>`<option value="${id}" ${id===de?'selected':''}>${esc(nameOf(id))}</option>`).join('')}</select>
+    <label class="f">Quem recebeu</label>
+    <select id="stTo">${g.membros.map(id=>`<option value="${id}" ${id===para?'selected':''}>${esc(nameOf(id))}</option>`).join('')}</select>
+    <label class="f">Valor (R$)</label>
+    <input id="stVal" type="number" step="0.01" min="0" value="${valor?(valor/100).toFixed(2):''}">
+    <label class="f">Data</label>
+    <input id="stDate" type="date" value="${todayISO()}">
+    <label class="f">Observação</label>
+    <input id="stNota" placeholder="Pix, dinheiro, transferência…">
+    <div class="modal-actions"><button data-close>Cancelar</button><button class="btn-g" id="stSave">Confirmar</button></div>`,
+  root=>{
+    $('#stSave',root).onclick=()=>{
+      const dep=$('#stFrom',root).value, rec=$('#stTo',root).value, v=cents($('#stVal',root).value);
+      if(dep===rec){ toast('Escolha pessoas diferentes','bad'); sfx.bad(); return; }
+      if(v<=0){ toast('Informe o valor','bad'); sfx.bad(); return; }
+      addSettle({grupoId:g.id,de:dep,para:rec,valor:v,data:$('#stDate',root).value||todayISO(),nota:$('#stNota',root).value.trim()});
+      saveDB(); closeModal(); render(); sfx.ok();
+    };
+  });
+}
+
+/* --------------------------------------------- RECORRENTE */
+function openRecModal(){
+  const g=getGroup(ui.groupId); if(!g) return;
+  openModal(`
+    <h2>Despesa recorrente</h2>
+    <label class="f">Descrição</label><input id="rcDesc" placeholder="Aluguel, internet, faxina…">
+    <div class="row" style="gap:8px">
+      <div style="flex:1"><label class="f">Valor (R$)</label><input id="rcVal" type="number" step="0.01" min="0"></div>
+      <div style="flex:1"><label class="f">Frequência</label>
+        <select id="rcFreq"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option></select></div>
+    </div>
+    <label class="f">Categoria</label>
+    <select id="rcCat">${CATS.map(c=>`<option value="${c.id}" ${c.id==='casa'?'selected':''}>${c.em} ${c.nome}</option>`).join('')}</select>
+    <label class="f">Quem paga</label>
+    <select id="rcPayer">${g.membros.map(id=>`<option value="${id}">${esc(nameOf(id))}</option>`).join('')}</select>
+    <label class="f">Primeira cobrança</label><input id="rcDate" type="date" value="${todayISO()}">
+    <label class="f">Dividido igualmente entre</label>
+    <div class="member-pick">${g.membros.map(id=>{const m=getMember(id);
+      return `<label class="mp"><input type="checkbox" value="${id}" checked>${avatarHTML(m||{id},3)}<span>${esc(nameOf(id))}</span></label>`}).join('')}</div>
+    <div class="modal-actions"><button data-close>Cancelar</button><button class="btn-g" id="rcSave">Criar</button></div>`,
+  root=>{
+    $('#rcSave',root).onclick=()=>{
+      const v=cents($('#rcVal',root).value);
+      const parts=$$('.member-pick input:checked',root).map(i=>i.value);
+      if(v<=0||!parts.length){ toast('Preencha valor e participantes','bad'); sfx.bad(); return; }
+      db.recorrentes.push({id:uid('r'),grupoId:g.id,desc:$('#rcDesc',root).value.trim()||'Recorrente',
+        valor:v,categoria:$('#rcCat',root).value,pagoPor:$('#rcPayer',root).value,tipo:'igual',partes:{},
+        participantes:parts,freq:$('#rcFreq',root).value,proxima:$('#rcDate',root).value||todayISO(),ativo:true,nota:''});
+      saveDB(); runRecurring(); closeModal(); render(); sfx.ok(); toast('Recorrente criada');
+    };
+  });
+}
+
+/* --------------------------------------------- CONVITE */
+function openInviteModal(){
+  const g=getGroup(ui.groupId); if(!g) return;
+  if(precisaNome()) return pedirNome(()=>openInviteModal());
+  const pack={g:{...g,nuvem:undefined}, membros:g.membros.map(getMember).filter(Boolean).map(m=>({...m,isMe:false})),
+    despesas:groupExpenses(g.id).map(e=>({...e,recibo:null})), acertos:groupSettles(g.id),
+    nuvem: g.nuvem&&g.nuvem.segredo ? {id:g.nuvem.id,segredo:g.nuvem.segredo,url:db.nuvem.url,chave:db.nuvem.chave} : null};
+  const code=btoa(unescape(encodeURIComponent(JSON.stringify(pack))));
+  const link=location.href.split('#')[0]+'#convite='+code;
+  openModal(`
+    <h2>Convidar para "${esc(g.nome)}"</h2>
+    <div class="small">Envie este link por WhatsApp ou e-mail. Quem abrir recebe o grupo com todos os gastos já lançados.</div>
+    ${g.nuvem&&g.nuvem.segredo?`<div class="note" style="margin-top:12px;border-color:var(--green)">
+      Este grupo está <b>sincronizado</b>: quem entrar pelo link passa a ver os gastos novos automaticamente.</div>`:''}
+    ${location.protocol==='file:'?`<div class="note" style="margin-top:12px;border-color:var(--primary)">
+      <b>Atenção:</b> você está abrindo o app como arquivo local, então este link só funciona no seu próprio aparelho.
+      Publique o Casa Quentinha em um endereço na web (veja o LEIA-ME) para o convite funcionar para as outras pessoas.</div>`:''}
+    <label class="f">Link de convite</label>
+    <textarea id="invLink" readonly style="font-size:13px;min-height:110px">${esc(link)}</textarea>
+    <div class="modal-actions"><button data-close>Fechar</button><button class="btn-g" id="invCopy">Copiar link</button></div>`,
+  root=>{
+    $('#invCopy',root).onclick=async()=>{
+      const t=$('#invLink',root); t.select();
+      try{ await navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); }
+      toast('Link copiado'); sfx.ok();
+    };
+  });
+}
+function importInvite(code){
+  try{
+    const pack=JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(getGroup(pack.g.id)){ toast('Você já tem esse grupo','warn'); return; }
+    pack.membros.forEach(m=>{ if(!getMember(m.id)) db.membros.push({...m,isMe:false}); });
+    const grupoNovo={...pack.g,arquivado:false};
+    if(pack.nuvem){
+      if(!db.nuvem.url){ db.nuvem.url=pack.nuvem.url; db.nuvem.chave=pack.nuvem.chave; }
+      grupoNovo.nuvem={id:pack.nuvem.id,segredo:pack.nuvem.segredo,enviadoAte:0,cursor:null};
+    }
+    db.grupos.push(grupoNovo);
+    pack.despesas.forEach(e=>{ if(!db.despesas.find(x=>x.id===e.id)) db.despesas.push(e); });
+    (pack.acertos||[]).forEach(s=>{ if(!db.acertos.find(x=>x.id===s.id)) db.acertos.push(s); });
+    saveDB(true); toast('Grupo "'+pack.g.nome+'" importado'); sfx.ok();
+    ui.tab='gastos'; go('group',pack.g.id);
+    setTimeout(()=>perguntarIdentidade(getGroup(pack.g.id)),300);
+    if(pack.nuvem) setTimeout(()=>sincronizar(true),1200);
+  }catch(e){ toast('Convite inválido','bad'); }
+}
+
+/* ------------------------------------------------ arquivos */
+function fileToReceipt(file){
+  return new Promise((res,rej)=>{
+    if(file.size>8*1024*1024) return rej('big');
+    const fr=new FileReader();
+    fr.onload=()=>{
+      if(file.type==='application/pdf'){ return res({nome:file.name,tipo:'pdf',data:fr.result}); }
+      const img=new Image();
+      img.onload=()=>{
+        const max=900, sc=Math.min(1,max/Math.max(img.width,img.height));
+        const cv=document.createElement('canvas');
+        cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        res({nome:file.name,tipo:'img',data:cv.toDataURL('image/jpeg',.72)});
+      };
+      img.onerror=()=>res({nome:file.name,tipo:'pdf',data:fr.result});
+      img.src=fr.result;
+    };
+    fr.onerror=rej;
+    fr.readAsDataURL(file);
+  });
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='casa-quentinha-'+todayISO()+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Arquivo exportado'); sfx.ok();
+}
+
+
+/* ================================================================
+   SINCRONIZAÇÃO NA NUVEM (Supabase)
+   O app continua funcionando 100% offline; a nuvem é opcional e
+   ligada grupo a grupo. Conflitos: vence a alteração mais recente.
+   ================================================================ */
+var sync = { estado:'parado', msg:'', ultima:0, rodando:false, agendado:null };
+
+function nuvemPronta(){ return !!(db.nuvem && db.nuvem.url && db.nuvem.chave); }
+function gruposNaNuvem(){ return db.grupos.filter(g=>g.nuvem && g.nuvem.segredo); }
+
+async function rpc(fn,args){
+  if(!nuvemPronta()) throw new Error('Sincronização não configurada');
+  const base=db.nuvem.url.trim().replace(/\/+$/,'');
+  const chave=db.nuvem.chave.trim();
+  const headers={'Content-Type':'application/json','apikey':chave};
+  // chave antiga (anon, formato JWT) vai também no Authorization; a nova (sb_publishable_) não precisa
+  if(chave.startsWith('eyJ')) headers['Authorization']='Bearer '+chave;
+  const r=await fetch(base+'/rest/v1/rpc/'+fn,{method:'POST',headers,body:JSON.stringify(args)});
+  const txt=await r.text();
+  if(!r.ok) throw new Error('('+r.status+') '+txt.slice(0,160));
+  return txt? JSON.parse(txt) : null;
+}
+
+function limpaItem(tipo,obj){
+  const c={...obj};
+  if(tipo==='grupo') delete c.nuvem;
+  if(tipo==='membro') delete c.isMe;
+  return c;
+}
+function itensDoGrupo(g,desde){
+  const out=[];
+  const add=(tipo,o)=>{ if((o.v||0)>desde) out.push({item_id:o.id,tipo,dados:limpaItem(tipo,o),apagado:false,versao:o.v||0}); };
+  add('grupo',g);
+  g.membros.map(getMember).filter(Boolean).forEach(m=>add('membro',m));
+  db.despesas.filter(e=>e.grupoId===g.id).forEach(e=>add('despesa',e));
+  db.acertos.filter(a=>a.grupoId===g.id).forEach(a=>add('acerto',a));
+  Object.entries(db.apagados||{}).forEach(([id,t])=>{
+    if(t.grupoId===g.id && (t.v||0)>desde) out.push({item_id:id,tipo:t.tipo,dados:{},apagado:true,versao:t.v});
+  });
+  return out;
+}
+
+function aplicaRemoto(g,linhas){
+  let mudou=0;
+  linhas.forEach(l=>{
+    const id=l.item_id, ver=Number(l.versao)||0, d=l.dados||{};
+    const morto=(db.apagados||{})[id];
+    if(morto && (morto.v||0)>=ver) return;               // apagamos aqui depois: mantém apagado
+    if(l.apagado){
+      if(l.tipo==='despesa' && db.despesas.some(e=>e.id===id)){ db.despesas=db.despesas.filter(e=>e.id!==id); mudou++; }
+      if(l.tipo==='acerto'  && db.acertos.some(a=>a.id===id)){ db.acertos=db.acertos.filter(a=>a.id!==id); mudou++; }
+      if(l.tipo==='grupo'   && getGroup(id)){
+        db.grupos=db.grupos.filter(x=>x.id!==id);
+        db.despesas=db.despesas.filter(e=>e.grupoId!==id);
+        db.acertos=db.acertos.filter(a=>a.grupoId!==id);
+        mudou++;
+      }
+      db.apagados[id]={tipo:l.tipo,grupoId:g.id,v:ver};
+      return;
+    }
+    if(l.tipo==='grupo'){
+      const loc=getGroup(id);
+      if(!loc){ db.grupos.push({...d,v:ver,nuvem:{...g.nuvem}}); mudou++; }
+      else if((loc.v||0)<ver){ const nu=loc.nuvem; Object.assign(loc,d,{v:ver,nuvem:nu}); mudou++; }
+    }
+    else if(l.tipo==='membro'){
+      const loc=getMember(id);
+      if(!loc){ db.membros.push({...d,v:ver,isMe:false}); mudou++; }
+      else if((loc.v||0)<ver){ const eu=loc.isMe; Object.assign(loc,d,{v:ver,isMe:eu}); mudou++; }
+    }
+    else if(l.tipo==='despesa'){
+      const i=db.despesas.findIndex(e=>e.id===id);
+      if(i<0){ db.despesas.push({...d,v:ver}); mudou++; }
+      else if((db.despesas[i].v||0)<ver){ db.despesas[i]={...d,v:ver}; mudou++; }
+    }
+    else if(l.tipo==='acerto'){
+      const i=db.acertos.findIndex(a=>a.id===id);
+      if(i<0){ db.acertos.push({...d,v:ver}); mudou++; }
+      else if((db.acertos[i].v||0)<ver){ db.acertos[i]={...d,v:ver}; mudou++; }
+    }
+  });
+  return mudou;
+}
+
+async function sincronizar(manual){
+  if(sync.rodando || !nuvemPronta()) return;
+  const gs=gruposNaNuvem();
+  if(!gs.length){ if(manual) toast('Nenhum grupo com sincronização ligada','warn'); return; }
+  sync.rodando=true; sync.estado='sincronizando'; pintaSync();
+  let mudou=0;
+  try{
+    for(const g of gs){
+      const desde=g.nuvem.enviadoAte||0;
+      const itens=itensDoGrupo(g,desde);
+      if(itens.length){
+        await rpc('cq_push',{p_grupo:g.nuvem.id,p_segredo:g.nuvem.segredo,p_itens:itens});
+        g.nuvem.enviadoAte=Math.max(desde,...itens.map(i=>i.versao));
+      }
+      const linhas=await rpc('cq_pull',{p_grupo:g.nuvem.id,p_segredo:g.nuvem.segredo,
+        p_desde:g.nuvem.cursor||'1970-01-01T00:00:00Z'});
+      if(Array.isArray(linhas) && linhas.length){
+        mudou+=aplicaRemoto(g,linhas);
+        g.nuvem.cursor=linhas.map(l=>l.atualizado_em).sort().pop();
+      }
+    }
+    sync.estado='ok'; sync.msg=''; sync.ultima=Date.now();
+    saveDB(true);
+    if(mudou){ render(); toast(mudou+' novidade(s) do grupo'); }
+    else if(manual) toast('Tudo sincronizado');
+  }catch(e){
+    sync.estado='erro'; sync.msg=String(e.message||e);
+    if(manual){ toast('Não deu para sincronizar','bad'); sfx.bad(); }
+  }
+  sync.rodando=false; pintaSync();
+  if(ui.screen==='menu'||ui.screen==='group') render();
+}
+
+function agendaSync(){
+  if(!appPronto || !nuvemPronta() || !gruposNaNuvem().length) return;
+  clearTimeout(sync.agendado);
+  sync.agendado=setTimeout(()=>sincronizar(false),2500);
+}
+function pintaSync(){
+  $$('[data-sync-status]').forEach(el=>{ el.textContent=textoSync(); el.className='small '+(sync.estado==='erro'?'neg':sync.estado==='ok'?'pos':''); });
+}
+function textoSync(){
+  if(!nuvemPronta()) return 'Não configurada.';
+  if(!gruposNaNuvem().length) return 'Conectada. Nenhum grupo sincronizando ainda.';
+  if(sync.estado==='sincronizando') return 'Sincronizando…';
+  if(sync.estado==='erro') return 'Erro: '+sync.msg;
+  if(sync.ultima) return 'Tudo em dia (última sincronização às '+new Date(sync.ultima).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+').';
+  return 'Conectada.';
+}
+
+/* liga a nuvem em um grupo específico */
+async function ligarNuvem(g){
+  if(!nuvemPronta()){ toast('Configure a sincronização em Ajustes','warn'); go('menu'); return; }
+  if(precisaNome()) return pedirNome(()=>ligarNuvem(g));
+  const segredo = g.nuvem&&g.nuvem.segredo ? g.nuvem.segredo : uid('s')+uid('k');
+  try{
+    await rpc('cq_registrar',{p_grupo:g.id,p_segredo:segredo});
+    g.nuvem={id:g.id,segredo,enviadoAte:0,cursor:null};
+    toca(g); saveDB(true);
+    await sincronizar(true);
+    render(); toast('Grupo na nuvem');
+  }catch(e){ toast('Falha: '+String(e.message||e).slice(0,60),'bad'); sfx.bad(); }
+}
+function desligarNuvem(g){ delete g.nuvem; saveDB(true); render(); toast('Sincronização desligada deste grupo','warn'); }
+
+/* ================================================================
+   EVENTOS
+   ================================================================ */
+function bindScreen(){
+  const big=$('#bigAv');
+  if(big && profileDraft) drawAvatar(big,profileDraft.avatar,9);
+}
+
+document.addEventListener('click',ev=>{
+  const t=ev.target.closest('[data-nav],[data-open-group],[data-tab],[data-exp],[data-settle],[data-del-settle],[data-act],[data-gicon],[data-rm-member],[data-del-member],[data-del-rec],[data-dupla-abrir],[data-eusou],[data-av-set],[data-edit-member],[data-close]');
+  if(!t) return;
+  const d=t.dataset;
+
+  if(d.close!==undefined){ closeModal(); return; }
+  if(d.nav){ sfx.click(); if(d.nav==='groups'||d.nav==='home') ui.groupId=null; go(d.nav); return; }
+  if(d.openGroup){ sfx.click(); ui.tab='gastos'; go('group',d.openGroup); return; }
+  if(d.tab){ sfx.click(); ui.tab=d.tab; render(); return; }
+  if(d.exp){ openExpenseDetail(d.exp); return; }
+  if(d.settle){ const [de,para,v]=d.settle.split('|'); openSettleModal(de,para,Number(v)); return; }
+  if(d.delSettle){ askConfirm({titulo:'Desfazer este acerto?',texto:'A dívida volta a aparecer no grupo.',ok:'Desfazer'},
+    ()=>{ const a=db.acertos.find(x=>x.id===d.delSettle); if(a) apagado('acerto',a.id,a.grupoId);
+      db.acertos=db.acertos.filter(s=>s.id!==d.delSettle); saveDB(); render(); toast('Acerto removido','warn'); }); return; }
+  if(d.delRec){ askConfirm({titulo:'Remover esta recorrente?',texto:'Os gastos já lançados continuam no grupo.',ok:'Remover'},
+    ()=>{ db.recorrentes=db.recorrentes.filter(r=>r.id!==d.delRec); saveDB(); render(); toast('Recorrente removida','warn'); }); return; }
+  if(d.gicon){ const g=getGroup(ui.groupId); if(g){ g.icone=d.gicon; toca(g); saveDB(); render(); sfx.click(); } return; }
+  if(d.rmMember){
+    const g=getGroup(ui.groupId); if(!g) return;
+    const bal=groupBalances(g.id)[d.rmMember]||0;
+    if(Math.abs(bal)>0){ toast('Acerte o saldo antes de remover','bad'); sfx.bad(); return; }
+    if(groupExpenses(g.id).some(e=>e.pagoPor===d.rmMember||e.cotas[d.rmMember])){ toast('Participante tem gastos no grupo','bad'); sfx.bad(); return; }
+    g.membros=g.membros.filter(x=>x!==d.rmMember); toca(g); saveDB(); render(); return;
+  }
+  if(d.delMember){
+    if(db.grupos.some(g=>g.membros.includes(d.delMember))){ toast('Remova dos grupos primeiro','bad'); sfx.bad(); return; }
+    askConfirm({titulo:'Apagar '+nameOf(d.delMember)+'?'},
+      ()=>{ db.membros=db.membros.filter(m=>m.id!==d.delMember); saveDB(); render(); toast('Pessoa apagada','warn'); });
+    return;
+  }
+  if(d.duplaAbrir){ abrirDupla(d.duplaAbrir); return; }
+  if(d.editMember){ editingMemberId=d.editMember; profileDraft=null; go('profile'); return; }
+  if(d.avSet){
+    const [k,v]=d.avSet.split(':');
+    if(profileDraft){ profileDraft.avatar[k]=v; render(); sfx.click(); }
+    return;
+  }
+
+  switch(d.act){
+    case 'back': ui.groupId=null; go('groups'); break;
+    case 'new-exp': openExpenseModal(); break;
+    case 'new-group': openGroupModal(); break;
+    case 'nova-dupla': openDuplaModal(); break;
+    case 'new-member': openMemberModal(); break;
+    case 'manual-settle': openSettleModal(); break;
+    case 'new-rec': openRecModal(); break;
+    case 'invite': openInviteModal(); break;
+    case 'rand-av': if(profileDraft){ profileDraft.avatar=randomAvatar(); render(); sfx.click(); } break;
+    case 'save-profile': {
+      const m=getMember(editingMemberId); if(!m) break;
+      const nome=$('#pName').value.trim(); if(nome) m.nome=nome;
+      m.contato=$('#pContato').value.trim();
+      m.avatar={...profileDraft.avatar};
+      toca(m); saveDB(); render(); sfx.ok(); toast('Perfil salvo');
+      break;
+    }
+    case 'save-group': {
+      const g=getGroup(ui.groupId); if(!g) break;
+      const n=$('#gName').value.trim(); if(n) g.nome=n;
+      toca(g); saveDB(); render(); sfx.ok(); toast('Grupo atualizado');
+      break;
+    }
+    case 'add-existing': {
+      const g=getGroup(ui.groupId); if(!g) break;
+      const fora=db.membros.filter(m=>!g.membros.includes(m.id));
+      openModal(`<h2>Adicionar ao grupo</h2>
+        <div class="member-pick">${fora.map(m=>`<label class="mp"><input type="checkbox" value="${m.id}">
+          ${avatarHTML(m,3)}<span>${esc(m.nome)}</span></label>`).join('')}</div>
+        <div class="modal-actions"><button data-close>Cancelar</button><button class="btn-g" id="aeSave">Adicionar</button></div>`,
+        root=>{ $('#aeSave',root).onclick=()=>{
+          $$('.member-pick input:checked',root).forEach(i=>{ if(!g.membros.includes(i.value)) g.membros.push(i.value); });
+          toca(g); saveDB(); closeModal(); render(); sfx.ok(); };
+        });
+      break;
+    }
+    case 'archive': { const g=getGroup(ui.groupId); if(!g) break; g.arquivado=!g.arquivado; saveDB(); render(); break; }
+    case 'del-group': {
+      const g=getGroup(ui.groupId); if(!g) break;
+      askConfirm({titulo:'Apagar "'+g.nome+'"?',texto:'Todos os gastos, acertos e recorrentes deste grupo serão apagados.'},()=>{
+        apagado('grupo',g.id,g.id);
+        db.despesas.filter(e=>e.grupoId===g.id).forEach(e=>apagado('despesa',e.id,g.id));
+        db.acertos.filter(a=>a.grupoId===g.id).forEach(a=>apagado('acerto',a.id,g.id));
+        db.grupos=db.grupos.filter(x=>x.id!==g.id);
+        db.despesas=db.despesas.filter(e=>e.grupoId!==g.id);
+        db.acertos=db.acertos.filter(s=>s.grupoId!==g.id);
+        db.recorrentes=db.recorrentes.filter(r=>r.grupoId!==g.id);
+        saveDB(); ui.groupId=null; go('groups'); toast('Grupo apagado','warn');
+      });
+      break;
+    }
+    case 'save-nuvem': {
+      db.nuvem.url=$('#cfgUrl').value.trim();
+      db.nuvem.chave=$('#cfgChave').value.trim();
+      saveDB(true); render();
+      if(nuvemPronta()){ toast('Conexão salva'); sincronizar(true); } else toast('Preencha endereço e chave','warn');
+      break;
+    }
+    case 'sync-now': sincronizar(true); break;
+    case 'nuvem-on': { const g=getGroup(ui.groupId); if(g) ligarNuvem(g); break; }
+    case 'nuvem-off': { const g=getGroup(ui.groupId); if(g) desligarNuvem(g); break; }
+    case 'install':
+      if(promptInstalar){
+        promptInstalar.prompt();
+        promptInstalar.userChoice.then(r=>{
+          if(r.outcome==='accepted') toast('Instalando…');
+          promptInstalar=null; render();
+        });
+      }
+      break;
+    case 'export': exportJSON(); break;
+    case 'import': $('#fileImport').click(); break;
+    case 'toggle-sfx': sfxOn=!sfxOn; db.config.sfx=sfxOn; saveDB(); render(); if(sfxOn) sfx.ok(); break;
+    case 'reset':
+      askConfirm({titulo:'Apagar tudo?',texto:'Grupos, gastos, acertos e pessoas deste aparelho. Exporte antes se quiser guardar.',ok:'Apagar tudo'},()=>{
+        db=freshDB(); saveDB(); editingMemberId=null; profileDraft=null; ui={screen:'home',groupId:null,tab:'gastos'};
+        go('home'); toast('Tudo apagado','warn');
+      });
+      break;
+  }
+});
+
+document.addEventListener('change',ev=>{
+  if(ev.target.id==='fileImport'){
+    const f=ev.target.files[0]; if(!f) return;
+    const fr=new FileReader();
+    fr.onload=()=>{
+      try{
+        const novo=JSON.parse(fr.result);
+        if(!novo.membros||!novo.grupos) throw 0;
+        askConfirm({titulo:'Substituir os dados atuais?',texto:'O conteúdo deste aparelho será trocado pelo arquivo importado.',ok:'Substituir'},()=>{
+          db=novo;
+          db.recorrentes=db.recorrentes||[]; db.config=db.config||{sfx:true};
+          db.nuvem=db.nuvem||{url:'',chave:''}; db.apagados=db.apagados||{};
+          if(!db.membros.some(m=>m.isMe)) db.membros[0].isMe=true;
+          saveDB(); editingMemberId=null; profileDraft=null; go('home'); toast('Dados importados'); sfx.ok();
+        });
+      }catch(e){ toast('Arquivo inválido','bad'); sfx.bad(); }
+    };
+    fr.readAsText(f);
+    ev.target.value='';
+  }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+/* ================================================================
+   BOOT
+   ================================================================ */
+/* PWA: instalação e funcionamento offline (só quando publicado em http/https) */
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); promptInstalar=e; if(ui.screen==='menu') render(); });
+window.addEventListener('appinstalled',()=>{ promptInstalar=null; toast('App instalado'); if(ui.screen==='menu') render(); });
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+appPronto=true;
+runRecurring();
+render();
+if(nuvemPronta()) setTimeout(()=>sincronizar(false),800);
+setInterval(()=>{ if(document.visibilityState==='visible') sincronizar(false); },45000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') sincronizar(false); });
+window.addEventListener('online',()=>sincronizar(false));
+if(location.hash.startsWith('#convite=')){
+  const code=location.hash.slice(9);
+  history.replaceState(null,'',location.pathname);
+  setTimeout(()=>askConfirm({titulo:'Convite recebido',texto:'Quer adicionar este grupo ao seu aparelho?',ok:'Importar',perigo:false},
+    ()=>importInvite(code)),400);
+}
+
+</script>
+</body>
+</html>
