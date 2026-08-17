@@ -1,7 +1,7 @@
 /* Casa Quentinha — service worker
    Deixa o app abrir offline depois da primeira visita.
    Ao publicar uma versão nova, troque o número em CACHE. */
-const CACHE = 'casa-quentinha-v1';
+const CACHE = 'casa-quentinha-v2';
 const ASSETS = [
   './',
   './index.html',

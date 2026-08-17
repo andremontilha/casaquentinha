@@ -973,13 +973,27 @@ function tabConfig(g){
   const recs=db.recorrentes.filter(r=>r.grupoId===g.id);
   return `
   <div class="card">
-    <h3>Dados do grupo</h3>
+    <h3>${ehDupla(g)?'Dados desta conta':'Dados do grupo'}</h3>
     <label class="f">Nome</label>
     <input id="gName" value="${esc(g.nome)}">
-    <label class="f">Ícone</label>
+    ${ehDupla(g)?'':`<label class="f">Ícone</label>
     <div class="swatches">${GROUP_ICONS.map(i=>`<span class="sw ${g.icone===i?'on':''}" data-gicon="${i}"
-      style="display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--surface3)">${i}</span>`).join('')}</div>
+      style="display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--surface3)">${i}</span>`).join('')}</div>`}
     <button class="btn-g btn-full" data-act="save-group" style="margin-top:16px">Salvar</button>
+  </div>
+  <div class="card">
+    <h3>Sincronização</h3>
+    ${g.nuvem&&g.nuvem.segredo
+      ? `<div class="small" style="margin-bottom:12px">${ehDupla(g)?'Esta conta está':'Este grupo está'} na nuvem: quem tem o link de convite vê os gastos aparecerem sozinhos.</div>
+         <div class="small" data-sync-status style="margin-bottom:12px">${textoSync()}</div>
+         <div class="grid g2">
+           <button data-act="sync-now">Sincronizar agora</button>
+           <button class="btn-ghost" data-act="nuvem-off" style="color:var(--red);border:1px solid var(--line)">Desligar</button>
+         </div>`
+      : `<div class="small" style="margin-bottom:12px">${nuvemPronta()
+          ? (ehDupla(g)?'Ligue para vocês dois verem os mesmos gastos, cada um no seu celular.':'Ligue para que todos os participantes vejam os gastos deste grupo ao vivo.')
+          : 'Configure a conexão em <b>Ajustes → Sincronizar entre celulares</b> para liberar esta opção.'}</div>
+         <button class="btn-g btn-full" data-act="nuvem-on" ${nuvemPronta()?'':'disabled'}>Ligar sincronização ${ehDupla(g)?'desta conta':'deste grupo'}</button>`}
   </div>
   ${ehDupla(g)?'':`<div class="card">
     <h3>Participantes (${g.membros.length})</h3>
@@ -1016,24 +1030,10 @@ function tabConfig(g){
     <button class="btn-full" data-act="new-rec" style="margin-top:12px">+ Nova recorrente</button>
   </div>
   <div class="card">
-    <h3>Sincronização</h3>
-    ${g.nuvem&&g.nuvem.segredo
-      ? `<div class="small" style="margin-bottom:12px">Este grupo está na nuvem: quem tem o link de convite vê os gastos aparecerem sozinhos.</div>
-         <div class="small" data-sync-status style="margin-bottom:12px">${textoSync()}</div>
-         <div class="grid g2">
-           <button data-act="sync-now">Sincronizar agora</button>
-           <button class="btn-ghost" data-act="nuvem-off" style="color:var(--red);border:1px solid var(--line)">Desligar</button>
-         </div>`
-      : `<div class="small" style="margin-bottom:12px">${nuvemPronta()
-          ? 'Ligue para que todos os participantes vejam os gastos deste grupo ao vivo.'
-          : 'Configure a conexão em <b>Ajustes → Sincronizar entre celulares</b> para liberar esta opção.'}</div>
-         <button class="btn-g btn-full" data-act="nuvem-on" ${nuvemPronta()?'':'disabled'}>Ligar sincronização deste grupo</button>`}
-  </div>
-  <div class="card">
     <h3>Outras opções</h3>
     <div class="row wrap2">
-      <button class="btn-sm" data-act="archive">${g.arquivado?'Desarquivar':'Arquivar grupo'}</button>
-      <button class="btn-sm btn-ghost" data-act="del-group" style="color:var(--red)">Apagar grupo</button>
+      <button class="btn-sm" data-act="archive">${g.arquivado?'Desarquivar':(ehDupla(g)?'Arquivar conta':'Arquivar grupo')}</button>
+      <button class="btn-sm btn-ghost" data-act="del-group" style="color:var(--red)">${ehDupla(g)?'Apagar esta conta':'Apagar grupo'}</button>
     </div>
   </div>`;
 }
@@ -1046,7 +1046,8 @@ function viewProfile(){
   let m = editingMemberId? getMember(editingMemberId) : me();
   if(!m) m=me();
   editingMemberId = m.id;
-  if(!profileDraft || profileDraft.id!==m.id) profileDraft={id:m.id, avatar:{...m.avatar}};
+  if(!profileDraft || profileDraft.id!==m.id)
+    profileDraft={id:m.id, avatar:{...m.avatar}, nome:m.nome, contato:m.contato||''};
   const av = profileDraft.avatar;
   const cap = t => t.charAt(0).toUpperCase()+t.slice(1);
   const gb=globalBalances(); const net=gb[m.id]||0;
@@ -1056,8 +1057,8 @@ function viewProfile(){
     <div class="row" style="justify-content:center;margin-bottom:14px">
       <span class="av-frame big"><canvas id="bigAv" class="av"></canvas></span>
     </div>
-    <input id="pName" value="${esc(m.nome)}" style="text-align:center;font-size:18px;font-weight:700">
-    <input id="pContato" value="${esc(m.contato||'')}" placeholder="e-mail, telefone ou @usuário" style="text-align:center;margin-top:8px">
+    <input id="pName" value="${esc(profileDraft.nome)}" style="text-align:center;font-size:18px;font-weight:700">
+    <input id="pContato" value="${esc(profileDraft.contato)}" placeholder="e-mail, telefone ou @usuário" style="text-align:center;margin-top:8px">
     <div style="margin-top:14px">
       <div class="tiny">${m.isMe?'Seu saldo geral':'Saldo geral'}</div>
       <div class="money ${balClass(net)}" style="font-size:22px">${Math.abs(net)<1?'Tudo certo':(net>0?'+':'\u2212')+' '+brl(Math.abs(net))}</div>
@@ -1872,6 +1873,9 @@ function desligarNuvem(g){ delete g.nuvem; saveDB(true); render(); toast('Sincro
 function bindScreen(){
   const big=$('#bigAv');
   if(big && profileDraft) drawAvatar(big,profileDraft.avatar,9);
+  const nome=$('#pName'), contato=$('#pContato');
+  if(nome && profileDraft) nome.oninput=e=>profileDraft.nome=e.target.value;
+  if(contato && profileDraft) contato.oninput=e=>profileDraft.contato=e.target.value;
 }
 
 document.addEventListener('click',ev=>{
