@@ -1165,6 +1165,12 @@ function viewMenu(){
   </div>
   ${cardInstalar()}
   <div class="card">
+    <h3>Entrar por convite</h3>
+    <div class="small" style="margin-bottom:10px">Recebeu um link de convite? Se o app já está instalado, cole o link aqui em vez de abri-lo no navegador — assim o grupo entra direto neste app.</div>
+    <textarea id="cvCodigo" placeholder="Cole aqui o link que você recebeu" style="min-height:70px;font-size:14px"></textarea>
+    <button class="btn-g btn-full" data-act="entrar-convite" style="margin-top:10px">Entrar no grupo</button>
+  </div>
+  <div class="card">
     <h3>Som</h3>
     <button class="btn-full" data-act="toggle-sfx">${sfxOn?'Sons ligados':'Sons desligados'}</button>
   </div>
@@ -1642,6 +1648,7 @@ function openInviteModal(){
   openModal(`
     <h2>Convidar para "${esc(g.nome)}"</h2>
     <div class="small">Envie este link por WhatsApp ou e-mail. Quem abrir recebe o grupo com todos os gastos já lançados.</div>
+    <div class="note" style="margin-top:12px">Se a pessoa <b>já instalou</b> o Casa Quentinha no celular, peça para ela colar este link em <b>Ajustes → Entrar por convite</b> (no iPhone, o app instalado tem os dados separados do navegador).</div>
     ${g.nuvem&&g.nuvem.segredo?`<div class="note" style="margin-top:12px;border-color:var(--green)">
       Este grupo está <b>sincronizado</b>: quem entrar pelo link passa a ver os gastos novos automaticamente.</div>`:''}
     ${location.protocol==='file:'?`<div class="note" style="margin-top:12px;border-color:var(--primary)">
@@ -1965,6 +1972,13 @@ document.addEventListener('click',ev=>{
       break;
     }
     case 'sync-now': sincronizar(true); break;
+    case 'entrar-convite': {
+      const bruto=($('#cvCodigo').value||'').trim();
+      const cod = bruto.includes('#convite=') ? bruto.split('#convite=')[1].trim() : bruto;
+      if(!cod){ toast('Cole o link do convite','bad'); sfx.bad(); break; }
+      importInvite(cod);
+      break;
+    }
     case 'nuvem-on': { const g=getGroup(ui.groupId); if(g) ligarNuvem(g); break; }
     case 'nuvem-off': { const g=getGroup(ui.groupId); if(g) desligarNuvem(g); break; }
     case 'install':
